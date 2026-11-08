@@ -63,7 +63,6 @@ let polling = false;
 let cueSet = new Set();
 let switchingTimer = null;
 let currentCue = '';
-let displayedLevel = 0;
 
 function formatTime(seconds, unknown = '0:00') {
   const value = Number(seconds);
@@ -262,18 +261,6 @@ async function poll() {
   }
 }
 
-function updateVuMeter() {
-  const meter = document.querySelector('#audioMeter');
-  if (!meter) return;
-
-  const target = state?.hasTrack
-    ? (state.isPlaying ? Math.max(0.06, Math.min(1, Number(state.level) || 0)) : Math.max(0.04, (Number(state.level) || 0) * 0.35))
-    : 0.04;
-
-  displayedLevel += (target - displayedLevel) * 0.35;
-  meter.style.transform = `scaleY(${displayedLevel.toFixed(3)})`;
-}
-
 function animate() {
   if (state?.hasTrack) {
     const position = getEstimatedPosition();
@@ -288,7 +275,6 @@ function animate() {
     evaluateCues(position, duration);
   }
 
-  updateVuMeter();
   requestAnimationFrame(animate);
 }
 

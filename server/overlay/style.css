@@ -70,7 +70,7 @@ body {
   animation: switch-in 430ms cubic-bezier(.15,.8,.25,1) both;
 }
 
-/* VU-meter: высота = громкость воспроизведения. */
+/* Декоративная полоса слева (визуал, не VU). */
 .accent {
   position: relative;
   overflow: hidden;
@@ -85,20 +85,15 @@ body {
 }
 .accent span {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 100%;
-  background: linear-gradient(to top, var(--accent), #fff3a8);
-  transform-origin: bottom center;
-  transform: scaleY(0.08);
-  transition: transform 70ms linear, opacity 160ms ease;
-  filter: drop-shadow(0 0 8px rgba(244, 210, 31, .38));
-  opacity: .9;
-  will-change: transform;
+  inset: 0;
+  background: var(--accent);
+  transform-origin: bottom;
+  animation: accent-pulse 2.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px rgba(0, 0, 0, .25));
 }
 .widget.is-paused .accent span {
-  opacity: .35;
+  animation-play-state: paused;
+  opacity: .45;
 }
 
 .content {
@@ -204,6 +199,11 @@ body {
 @keyframes switch-in {
   from { opacity: 0; transform: translateY(-14px); filter: blur(3px); }
   to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+@keyframes accent-pulse {
+  0%, 100% { opacity: .56; transform: scaleY(.38); }
+  45% { opacity: 1; transform: scaleY(1); }
+  70% { opacity: .72; transform: scaleY(.63); }
 }
 
 @media (max-width: 620px) {

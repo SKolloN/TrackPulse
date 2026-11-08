@@ -6,17 +6,22 @@
   --text: #f4f4f5;
   --muted: #8b8f99;
   --accent: #f4d21f;
+  --accent-soft: rgba(244,210,31,.12);
+  --accent-glow: rgba(244,210,31,.22);
+  --accent-ring: rgba(244,210,31,.45);
   --danger: #ff6c7d;
-  font-family: Bahnschrift, "Segoe UI Variable", "Segoe UI", Arial, sans-serif;
+  --font: Bahnschrift, "Segoe UI Variable", "Segoe UI", Arial, sans-serif;
+  font-family: var(--font);
 }
 * { box-sizing: border-box; }
 body {
   margin: 0;
   min-height: 100vh;
   background:
-    radial-gradient(circle at 80% 0%, rgba(244,210,31,.08), transparent 30%),
+    radial-gradient(circle at 80% 0%, var(--accent-soft), transparent 30%),
     var(--bg);
   color: var(--text);
+  transition: background 280ms ease, color 280ms ease;
 }
 .admin { width: min(1200px, calc(100% - 40px)); margin: 0 auto; padding: 34px 0 60px; }
 .top { display: flex; justify-content: space-between; gap: 20px; align-items: flex-end; margin-bottom: 22px; }
@@ -66,7 +71,7 @@ button, a.ghost, a.primary {
   transition: transform 160ms ease, filter 160ms ease, background 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
 }
 button.primary, a.primary { background: var(--accent); color: #111; }
-button.primary:hover, a.primary:hover { filter: brightness(1.06); transform: translateY(-1px); box-shadow: 0 10px 24px rgba(244,210,31,.22); }
+button.primary:hover, a.primary:hover { filter: brightness(1.06); transform: translateY(-1px); box-shadow: 0 10px 24px var(--accent-glow); }
 button.ghost, a.ghost { background: #24262d; color: var(--text); }
 button.ghost:hover, a.ghost:hover { background: #2d3038; transform: translateY(-1px); }
 button.danger { background: rgba(255,108,125,.12); color: var(--danger); border: 1px solid rgba(255,108,125,.2); }
@@ -111,8 +116,8 @@ input, select {
 input:hover, select:hover { border-color: rgba(255,255,255,.16); }
 input:focus, select:focus {
   outline: none;
-  border-color: rgba(244,210,31,.55);
-  box-shadow: 0 0 0 3px rgba(244,210,31,.12);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 .toast { animation: toast-in 240ms ease both; }
 @keyframes toast-in {

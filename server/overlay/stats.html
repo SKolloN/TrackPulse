@@ -15,10 +15,17 @@
         <p class="subtitle">Журнал пишется всегда, пока работает локальный сервер. В режиме постоянной записи эфир активен автоматически.</p>
       </div>
       <div class="session-actions">
-        <button id="lockButton" class="lock-button" type="button" title="Админ-доступ">🔒</button>
-        <button id="openAdminButton" class="ghost" type="button" hidden>Админка</button>
         <span id="sessionStatus" class="session-status">Эфир не запущен</span>
         <button id="sessionToggle" class="primary" type="button">Начать новый эфир</button>
+        <button id="openAdminButton" class="ghost" type="button" hidden>Админка</button>
+        <button id="lockButton" class="lock-button" type="button" title="Админ-доступ" aria-label="Админ-доступ">
+          <svg class="lock-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M7 10V8a5 5 0 0 1 10 0v2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <rect x="5" y="10" width="14" height="11" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            <circle cx="12" cy="15.2" r="1.35" fill="currentColor"/>
+            <path d="M12 16.4v2.1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </button>
       </div>
     </header>
 
@@ -140,6 +147,7 @@
   </div>
 
   <div id="toast" class="toast" hidden></div>
+  <script src="theme-apply.js"></script>
   <script src="stats.js"></script>
 </body>
 </html>

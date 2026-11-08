@@ -144,6 +144,7 @@ async function loadAll() {
   renderInfo(info);
   renderSources(info.sources || []);
   fillThemeForm(theme.theme);
+  if (window.TrackPulseTheme) window.TrackPulseTheme.applyThemePayload(theme.theme);
   document.querySelector('#preferredProvider').value = settings.settings?.preferredProvider || 'auto';
 }
 
@@ -249,6 +250,7 @@ document.querySelector('#saveTheme').addEventListener('click', async () => {
       body: JSON.stringify({ theme })
     }, true);
     fillThemeForm(data.theme);
+    if (window.TrackPulseTheme) window.TrackPulseTheme.applyThemePayload(data.theme);
     document.querySelector('#preview').src = `/?t=${Date.now()}`;
     showToast('Стили сохранены');
   } catch (error) {
@@ -268,6 +270,7 @@ for (const button of document.querySelectorAll('.preset')) {
         body: JSON.stringify({ preset: button.dataset.preset })
       }, true);
       fillThemeForm(data.theme);
+      if (window.TrackPulseTheme) window.TrackPulseTheme.applyThemePayload(data.theme);
       document.querySelector('#preview').src = `/?t=${Date.now()}`;
       showToast(`Пресет ${button.dataset.preset}`);
     } catch (error) {

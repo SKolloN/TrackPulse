@@ -5,7 +5,7 @@
   window.__TRACKPULSE_PAGE_READER__ = true;
 
   const EVENT_NAME = 'trackpulse-now-playing';
-  const HEARTBEAT_MS = 100;
+  const HEARTBEAT_MS = 500;
 
   let lastSerialized = '';
   let lastMetadataKey = '';
@@ -13,15 +13,6 @@
   let activeMediaElement = null;
   let interceptedPositionState = null;
   let interceptedPositionAt = 0;
-
-  let audioCtx = null;
-  let analyser = null;
-  let analyserData = null;
-  let streamSource = null;
-  let hookedMedia = null;
-  let vuLevel = 0;
-  let vuSource = 'none';
-  let syntheticPhase = 0;
 
   function finiteNumber(value, fallback = 0) {
     const number = Number(value);
@@ -44,97 +35,6 @@
   function rememberMediaElement(element) {
     if (!(element instanceof HTMLMediaElement)) return;
     activeMediaElement = element;
-  }
-
-  function ensureAudioGraph(media) {
-    if (!(media instanceof HTMLMediaElement)) return false;
-    if (hookedMedia === media && analyser) return true;
-
-    try {
-      if (!audioCtx) {
-        const Ctx = window.AudioContext || window.webkitAudioContext;
-        if (!Ctx) return false;
-        audioCtx = new Ctx();
-      }
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume().catch(() => {});
-      }
-
-      if (streamSource) {
-        try { streamSource.disconnect(); } catch { /* ignore */ }
-        streamSource = null;
-      }
-
-      if (!analyser) {
-        analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 256;
-        analyser.smoothingTimeConstant = 0.55;
-        analyserData = new Uint8Array(analyser.frequencyBinCount);
-      }
-
-      if (typeof media.captureStream === 'function') {
-        const stream = media.captureStream();
-        streamSource = audioCtx.createMediaStreamSource(stream);
-        streamSource.connect(analyser);
-        hookedMedia = media;
-        vuSource = 'capture-stream';
-        return true;
-      }
-
-      if (!media.__trackpulseMediaSource) {
-        media.__trackpulseMediaSource = audioCtx.createMediaElementSource(media);
-        media.__trackpulseMediaSource.connect(analyser);
-        analyser.connect(audioCtx.destination);
-        hookedMedia = media;
-        vuSource = 'media-element';
-        return true;
-      }
-
-      hookedMedia = media;
-      vuSource = 'media-element';
-      return Boolean(analyser);
-    } catch {
-      hookedMedia = media;
-      vuSource = 'fallback';
-      return false;
-    }
-  }
-
-  function readVuLevel(media, isPlaying) {
-    if (!isPlaying) {
-      vuLevel *= 0.72;
-      if (vuLevel < 0.02) vuLevel = 0;
-      return vuLevel;
-    }
-
-    if (media && ensureAudioGraph(media) && analyser && analyserData) {
-      try {
-        analyser.getByteTimeDomainData(analyserData);
-        let sum = 0;
-        for (let i = 0; i < analyserData.length; i += 1) {
-          const centered = (analyserData[i] - 128) / 128;
-          sum += centered * centered;
-        }
-        const rms = Math.sqrt(sum / analyserData.length);
-        const boosted = Math.min(1, Math.pow(rms * 2.6, 0.85));
-        vuLevel = vuLevel * 0.45 + boosted * 0.55;
-        return vuLevel;
-      } catch {
-        vuSource = 'fallback';
-      }
-    }
-
-    // Если сайт не даёт доступ к аудиопотоку — живой синтетический VU от факта воспроизведения.
-    syntheticPhase += 0.35 + Math.random() * 0.25;
-    const wave = 0.22
-      + Math.abs(Math.sin(syntheticPhase)) * 0.35
-      + Math.abs(Math.sin(syntheticPhase * 1.7)) * 0.25
-      + Math.random() * 0.12;
-    const volumeFactor = media ? Math.max(0.15, Number(media.volume) || 0.8) : 0.7;
-    const target = Math.min(1, wave * volumeFactor);
-    vuLevel = vuLevel * 0.55 + target * 0.45;
-    vuSource = 'fallback';
-    return vuLevel;
   }
 
   function patchMediaElements() {
@@ -359,7 +259,6 @@
       : sessionPlaybackState === 'playing';
 
     const timeline = getPositionState(isPlaying);
-    const level = readVuLevel(media, isPlaying);
     const metadataKey = [provider, title, artist, album, getArtwork(metadata)].join('\u0000');
     if (metadataKey !== lastMetadataKey) {
       revision += 1;
@@ -376,8 +275,6 @@
       duration: timeline.duration,
       position: timeline.position,
       positionSource: timeline.source,
-      level,
-      levelSource: vuSource,
       isPlaying,
       hasTrack: Boolean(title || artist),
       revision,
