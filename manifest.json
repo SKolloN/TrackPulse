@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "TrackPulse — Now Playing for OBS",
   "short_name": "TrackPulse",
-  "version": "2.2.1",
+  "version": "2.2.2",
   "description": "Локально передаёт текущий трек из поддерживаемых музыкальных вкладок в OBS-оверлей. Данные не уходят в интернет.",
   "author": "SKolloN",
   "homepage_url": "https://github.com/SKolloN/TrackPulse",
