@@ -1,0 +1,11 @@
+data/*
+!data/.gitkeep
+logs/*
+!logs/.gitkeep
+*.log
+.DS_Store
+Thumbs.db
+extension-private-key.pem
+*.crx
+*.pem
+_trackpulse-releases/

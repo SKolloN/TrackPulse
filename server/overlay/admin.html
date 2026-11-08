@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TrackPulse Admin</title>
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <main class="admin">
+    <header class="top">
+      <div>
+        <p class="eyebrow">TRACKPULSE ADMIN</p>
+        <h1>Админ-панель</h1>
+        <p class="subtitle">Тесты оверлея, стили, токены и служебные настройки. Не для зрителей стрима.</p>
+      </div>
+      <div class="top-actions">
+        <a class="ghost" href="stats.html">← К истории</a>
+        <a class="ghost" href="/" target="_blank" rel="noopener">Оверлей</a>
+        <button id="logoutButton" class="danger" type="button">Выйти</button>
+      </div>
+    </header>
+
+    <section class="paths-panel card">
+      <div>
+        <span>Постоянный журнал</span>
+        <strong id="pathJournal">data\listening-journal.json</strong>
+      </div>
+      <div>
+        <span>История эфиров</span>
+        <strong id="pathHistory">data\stream-history.json</strong>
+      </div>
+      <div>
+        <span>Режим</span>
+        <strong id="runtimeModeLabel">обычный</strong>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Тест OBS</h2>
+        <p class="hint">Кидает трек в локальный оверлей без вкладок музыки.</p>
+        <label>Провайдер
+          <select id="testProvider">
+            <option value="yandex">Яндекс Музыка</option>
+            <option value="vk">VK</option>
+          </select>
+        </label>
+        <label>Исполнитель<input id="testArtist" type="text" value="Admin Preview"></label>
+        <label>Трек<input id="testTitle" type="text" value="Тестовый трек TrackPulse"></label>
+        <div class="row">
+          <button id="sendTest" class="primary" type="button">Отправить в OBS</button>
+          <button id="clearOverlay" class="ghost" type="button">Очистить оверлей</button>
+        </div>
+      </article>
+
+      <article class="card">
+        <h2>Служебная информация</h2>
+        <div id="infoBox" class="info-box">Загрузка…</div>
+        <div class="row">
+          <button id="copyToken" class="ghost" type="button">Копировать API-токен</button>
+          <button id="refreshInfo" class="ghost" type="button">Обновить</button>
+        </div>
+      </article>
+
+      <article class="card">
+        <h2>Пароль админки</h2>
+        <label>Текущий пароль<input id="currentPassword" type="password" autocomplete="current-password"></label>
+        <label>Новый пароль<input id="newPassword" type="password" autocomplete="new-password"></label>
+        <button id="changePassword" class="primary" type="button">Сменить пароль</button>
+      </article>
+
+      <article class="card">
+        <h2>Источники вкладок</h2>
+        <p class="hint">Живой монитор VK / Яндекс без отключения вкладок.</p>
+        <div id="sourcesBox" class="sources-box">Нет данных от расширения</div>
+        <label>Приоритет источника
+          <select id="preferredProvider">
+            <option value="auto">Авто (кто играет)</option>
+            <option value="yandex">Предпочитать Яндекс</option>
+            <option value="vk">Предпочитать VK</option>
+          </select>
+        </label>
+        <button id="saveSettings" class="primary" type="button">Сохранить приоритет</button>
+      </article>
+    </section>
+
+    <section class="card theme-card">
+      <div class="theme-head">
+        <div>
+          <h2>Стили оверлея</h2>
+          <p class="hint">Меняйте размер, цвета и поведение без правки кода. Сохраняется в data\overlay-theme.json</p>
+        </div>
+        <div class="row">
+          <button data-preset="yellow-night" class="ghost preset" type="button">Yellow Night</button>
+          <button data-preset="neon-cyan" class="ghost preset" type="button">Neon Cyan</button>
+          <button data-preset="soft-lilac" class="ghost preset" type="button">Soft Lilac</button>
+        </div>
+      </div>
+
+      <div class="theme-grid">
+        <label>Ширина блока<input id="var-widget-width" type="text"></label>
+        <label>Высота блока<input id="var-widget-height" type="text"></label>
+        <label>Скругление<input id="var-radius" type="text"></label>
+        <label>Фон<input id="var-surface" type="color"></label>
+        <label>Акцент<input id="var-accent" type="color"></label>
+        <label>Текст<input id="var-primary" type="color"></label>
+        <label>Вторичный<input id="var-secondary" type="color"></label>
+        <label>Приглушённый<input id="var-muted" type="color"></label>
+        <label>Размер названия<input id="var-title-size" type="text"></label>
+        <label>Размер артиста<input id="var-artist-size" type="text"></label>
+        <label>Показ карточки (мс)<input id="cfg-visibleDurationMs" type="number" min="1000" step="500"></label>
+        <label>Скорость скролла<input id="cfg-scrollSpeedPxPerSecond" type="number" min="10" step="1"></label>
+        <label class="check"><input id="cfg-showSourceLabel" type="checkbox"> Показывать источник</label>
+        <label class="check"><input id="cfg-hideWhenPaused" type="checkbox"> Скрывать на паузе</label>
+      </div>
+
+      <div class="preview-wrap">
+        <iframe id="preview" title="Overlay preview" src="/"></iframe>
+      </div>
+
+      <div class="row">
+        <button id="saveTheme" class="primary" type="button">Сохранить стили</button>
+        <button id="reloadPreview" class="ghost" type="button">Обновить превью</button>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" hidden></div>
+  <script src="admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,3 @@
+TrackPulse is provided as-is for personal use.
+No affiliation with Yandex, VK, Microsoft, or OBS Project.
+All track metadata stays on the local machine.

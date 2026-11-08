@@ -1,0 +1,19 @@
+TrackPulse — куда сохраняется история
+
+1) Постоянный журнал (пишется всегда, пока запущен локальный сервер):
+   data\listening-journal.json
+
+2) История эфиров:
+   data\stream-history.json
+   В режиме start-daemon.bat эфир активен автоматически.
+
+3) Токен API / тема / настройки / пароль админки:
+   data\api-token.txt
+   data\overlay-theme.json
+   data\settings.json
+   data\admin-password.sha256
+
+Админка: страница истории → 🔒 → пароль (по умолчанию admin) → кнопка «Админка».
+
+На этом компьютере:
+C:\Users\skoll\Desktop\stream\trackpulse-obs-v2.0.0\data\

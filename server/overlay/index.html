@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TrackPulse — Now Playing</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main id="widget" class="widget is-hidden" aria-live="polite">
+    <div class="accent" aria-hidden="true"><span id="audioMeter"></span></div>
+
+    <section class="content">
+      <div class="eyebrow">
+        <span id="playbackDot" class="playback-dot"></span>
+        <span id="statusLabel">СЕЙЧАС ИГРАЕТ</span>
+        <span id="sourceLabel" class="source-label" hidden></span>
+      </div>
+
+      <div id="titleMarquee" class="marquee title-marquee">
+        <div id="title" class="marquee-track title">Ожидание музыки</div>
+      </div>
+
+      <div id="artistMarquee" class="marquee artist-marquee">
+        <div id="artist" class="marquee-track artist">TrackPulse</div>
+      </div>
+
+      <div class="timeline">
+        <span id="currentTime" class="time">0:00</span>
+        <div class="progress" aria-hidden="true">
+          <div id="progressBar" class="progress-bar"></div>
+        </div>
+        <span id="duration" class="time">—:—</span>
+      </div>
+    </section>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="overlay.js"></script>
+</body>
+</html>

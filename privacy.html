@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TrackPulse — конфиденциальность</title>
+  <style>
+    :root { color-scheme: dark; font-family: "Segoe UI Variable", "Segoe UI", sans-serif; }
+    body { margin: 0; background: #101114; color: #f2f2f3; }
+    main { max-width: 720px; margin: 0 auto; padding: 40px 24px 64px; line-height: 1.55; }
+    h1 { margin: 0 0 8px; font-size: 28px; }
+    h2 { margin: 28px 0 8px; font-size: 18px; }
+    p, li { color: #c8c9ce; }
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 999px; background: #243528; color: #8be0a8; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="badge">Локальное расширение · без облака</p>
+    <h1>Политика конфиденциальности TrackPulse</h1>
+    <p>TrackPulse работает только на вашем компьютере. Расширение не регистрирует аккаунты, не собирает аналитику и не отправляет данные на внешние серверы.</p>
+
+    <h2>Что читается</h2>
+    <ul>
+      <li>Метаданные текущего трека на вкладках поддерживаемых музыкальных сайтов: название, исполнитель, альбом, обложка, позиция воспроизведения.</li>
+      <li>Только на явно указанных доменах из манифеста.</li>
+    </ul>
+
+    <h2>Куда уходят данные</h2>
+    <ul>
+      <li>Только на локальный сервер <code>http://127.0.0.1:18181</code>.</li>
+      <li>История сохраняется в локальных JSON-файлах рядом с сервером.</li>
+      <li>Никакие запросы во внешний интернет расширение само не делает.</li>
+    </ul>
+
+    <h2>Чего расширение не делает</h2>
+    <ul>
+      <li>Не читает другие сайты.</li>
+      <li>Не перехватывает пароли, сообщения и платежи.</li>
+      <li>Не загружает удалённый код.</li>
+      <li>Не использует микрофон, камеру, буфер обмена и захват вкладки.</li>
+    </ul>
+
+    <h2>Безопасность</h2>
+    <p>Мутирующие API локального сервера защищены токеном. Публичное состояние оверлея не содержит URL страницы и служебных ошибок. Сервер слушает только loopback-интерфейс.</p>
+  </main>
+</body>
+</html>

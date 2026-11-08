@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TrackPulse</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main class="panel">
+    <div class="heading">
+      <span class="logo">♪</span>
+      <div>
+        <h1>TrackPulse</h1>
+        <p class="tagline">Now Playing → OBS · <span id="versionLabel">v?</span></p>
+      </div>
+    </div>
+
+    <section class="status-card">
+      <div class="status-line">
+        <span id="statusDot" class="status-dot"></span>
+        <strong id="statusText">Проверка сервера…</strong>
+      </div>
+      <div id="sourceBadge" class="source-badge" hidden></div>
+      <div id="track" class="track">Откройте Яндекс Музыку или VK и включите трек.</div>
+      <div id="updateBanner" class="update-banner" hidden></div>
+      <div id="error" class="error" hidden></div>
+    </section>
+
+    <button id="openOverlay" type="button">Открыть оверлей</button>
+    <button id="copyAddress" class="secondary" type="button">Скопировать адрес для OBS</button>
+    <button id="openStats" class="secondary" type="button">История и статистика</button>
+    <button id="checkUpdate" class="secondary" type="button">Проверить обновление</button>
+    <button id="openGithub" class="ghost" type="button">GitHub / релизы</button>
+    <button id="openPrivacy" class="ghost" type="button">Конфиденциальность</button>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>

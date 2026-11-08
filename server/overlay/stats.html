@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>История — TrackPulse</title>
+  <link rel="stylesheet" href="stats.css">
+</head>
+<body>
+  <main class="dashboard">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">TRACKPULSE</p>
+        <h1>История и статистика</h1>
+        <p class="subtitle">Журнал пишется всегда, пока работает локальный сервер. В режиме постоянной записи эфир активен автоматически.</p>
+      </div>
+      <div class="session-actions">
+        <button id="lockButton" class="lock-button" type="button" title="Админ-доступ">🔒</button>
+        <button id="openAdminButton" class="ghost" type="button" hidden>Админка</button>
+        <span id="sessionStatus" class="session-status">Эфир не запущен</span>
+        <button id="sessionToggle" class="primary" type="button">Начать новый эфир</button>
+      </div>
+    </header>
+
+    <section class="toolbar card">
+      <label>
+        <span>Режим списка</span>
+        <select id="modeSelect">
+          <option value="journal">Постоянный журнал</option>
+          <option value="stream">Сессии эфира</option>
+        </select>
+      </label>
+      <label id="sessionSelectWrap">
+        <span>Сессия</span>
+        <select id="sessionSelect"></select>
+      </label>
+      <label>
+        <span>Экспорт с</span>
+        <input id="exportFrom" type="datetime-local">
+      </label>
+      <label>
+        <span>Экспорт по</span>
+        <input id="exportTo" type="datetime-local">
+      </label>
+      <div class="toolbar-actions">
+        <button id="refreshButton" class="ghost" type="button">Обновить</button>
+        <button id="exportButton" class="ghost" type="button">Экспорт CSV</button>
+        <button id="clearButton" class="danger" type="button">Очистить</button>
+      </div>
+    </section>
+
+    <section class="metrics">
+      <article class="metric card">
+        <span>Всего песен</span>
+        <strong id="trackCount">0</strong>
+        <small id="uniqueCount">0 уникальных</small>
+      </article>
+      <article class="metric card">
+        <span>Средняя длительность</span>
+        <strong id="averageDuration">—</strong>
+        <small id="totalDuration">Всего 0:00</small>
+      </article>
+      <article class="metric card">
+        <span>Самая короткая</span>
+        <strong id="shortestDuration">—</strong>
+        <small id="shortestTrack">Нет данных</small>
+      </article>
+      <article class="metric card">
+        <span>Самая длинная</span>
+        <strong id="longestDuration">—</strong>
+        <small id="longestTrack">Нет данных</small>
+      </article>
+      <article class="metric card wide">
+        <span>Чаще всего звучала</span>
+        <strong id="mostFrequentTrack">—</strong>
+        <small id="mostFrequentCount">Нет повторов</small>
+      </article>
+    </section>
+
+    <section class="charts">
+      <article class="card chart-card">
+        <div class="card-heading">
+          <div>
+            <span>Популярность</span>
+            <h2>Топ треков</h2>
+          </div>
+        </div>
+        <div id="topTracksChart" class="bar-chart empty">Пока недостаточно данных</div>
+      </article>
+
+      <article class="card chart-card">
+        <div class="card-heading">
+          <div>
+            <span>Исполнители</span>
+            <h2>Кто звучал чаще</h2>
+          </div>
+        </div>
+        <div id="topArtistsChart" class="bar-chart empty">Пока недостаточно данных</div>
+      </article>
+    </section>
+
+    <section class="card history-card">
+      <div class="card-heading history-heading">
+        <div>
+          <span>Хронология</span>
+          <h2 id="historyTitle">Что играло</h2>
+        </div>
+        <span id="sessionRange" class="range"></span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Время</th>
+              <th>Источник</th>
+              <th>Исполнитель</th>
+              <th>Песня</th>
+              <th>Длительность</th>
+            </tr>
+          </thead>
+          <tbody id="historyBody">
+            <tr><td colspan="6" class="empty-row">Пока нет записанных треков</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div id="lockModal" class="modal" hidden>
+    <div class="modal-card">
+      <h2>Доступ к админке</h2>
+      <p>Введите пароль. По умолчанию: <code>admin</code></p>
+      <input id="lockPassword" type="password" placeholder="Пароль" autocomplete="current-password">
+      <div class="row">
+        <button id="lockCancel" class="ghost" type="button">Отмена</button>
+        <button id="lockAccept" class="primary" type="button">Принять</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+  <script src="stats.js"></script>
+</body>
+</html>

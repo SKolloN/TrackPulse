@@ -1,0 +1,80 @@
+{
+  "manifest_version": 3,
+  "name": "TrackPulse — Now Playing for OBS",
+  "short_name": "TrackPulse",
+  "version": "2.2.0",
+  "description": "Локально передаёт текущий трек из поддерживаемых музыкальных вкладок в OBS-оверлей. Данные не уходят в интернет.",
+  "author": "SKolloN",
+  "homepage_url": "https://github.com/SKolloN/TrackPulse",
+  "minimum_chrome_version": "116",
+  "offline_enabled": true,
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://music.yandex.ru/*",
+    "https://music.yandex.com/*",
+    "https://vk.com/*",
+    "https://m.vk.com/*",
+    "https://vk.ru/*",
+    "http://127.0.0.1:18181/*",
+    "https://api.github.com/*",
+    "https://github.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://music.yandex.ru/*",
+        "https://music.yandex.com/*",
+        "https://vk.com/*",
+        "https://m.vk.com/*",
+        "https://vk.ru/*"
+      ],
+      "js": [
+        "page-reader.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://music.yandex.ru/*",
+        "https://music.yandex.com/*",
+        "https://vk.com/*",
+        "https://m.vk.com/*",
+        "https://vk.ru/*"
+      ],
+      "js": [
+        "content-bridge.js"
+      ],
+      "run_at": "document_start",
+      "world": "ISOLATED"
+    }
+  ],
+  "action": {
+    "default_title": "TrackPulse",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'"
+  },
+  "options_ui": {
+    "page": "privacy.html",
+    "open_in_tab": true
+  }
+}
