@@ -54,42 +54,76 @@ body {
     min-height 420ms ease;
 }
 
-.widget.layout-vinyl {
+/* Классика: пластинка + текст (если не снята чекбоксом) */
+.widget.layout-classic {
   grid-template-columns: 8px 112px 1fr;
 }
-.widget.layout-compact {
-  min-height: 96px;
+.widget.layout-classic.hide-vinyl {
+  grid-template-columns: 8px 1fr;
 }
-.widget.layout-compact .title { font-size: calc(var(--title-size) * 0.86); }
-.widget.layout-compact .artist { font-size: calc(var(--artist-size) * 0.92); }
-.widget.layout-compact .content { padding-top: 12px; padding-bottom: 10px; }
+
+/* Компакт: без пластинки, уже и ниже */
+.widget.layout-compact {
+  width: min(420px, calc(100vw - 16px));
+  min-height: 84px;
+  grid-template-columns: 6px 1fr;
+  border-radius: calc(var(--radius) * 0.72);
+}
+.widget.layout-compact .title { font-size: calc(var(--title-size) * 0.78); }
+.widget.layout-compact .artist { font-size: calc(var(--artist-size) * 0.86); }
+.widget.layout-compact .content { padding: 10px 14px 9px 12px; }
+.widget.layout-compact .eyebrow { margin-bottom: 2px; letter-spacing: .12em; }
+.widget.layout-compact .timeline { margin-top: 6px; gap: 8px; }
+.widget.layout-compact .artist-marquee { display: none; }
+
+/* Расширенный: пластинка всегда + физика влёта */
+.widget.layout-extended {
+  grid-template-columns: 8px 112px 1fr;
+  overflow: visible;
+}
 
 .vinyl {
   display: grid;
   place-items: center;
   padding: 12px 4px 12px 10px;
+  z-index: 2;
 }
+.vinyl[hidden] { display: none !important; }
 .vinyl-disc {
   position: relative;
   width: 92px;
   height: 92px;
   border-radius: 50%;
   background:
-    radial-gradient(circle at center, #111 0 12%, transparent 13%),
-    repeating-radial-gradient(circle at center, #1a1a1a 0 2px, #111 2px 4px);
+    conic-gradient(from 0deg, transparent 0 8%, rgba(255,255,255,.07) 8% 10%, transparent 10% 100%),
+    radial-gradient(circle at center, #0d0d0d 0 9%, transparent 10%),
+    repeating-radial-gradient(circle at center, #1c1c1c 0 2px, #101010 2px 4px);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.08), 0 10px 24px rgba(0,0,0,.35);
   overflow: hidden;
+}
+.vinyl-disc::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255,255,255,.12), transparent 42%, transparent 58%, rgba(0,0,0,.28));
+  pointer-events: none;
+  z-index: 3;
 }
 .vinyl-art {
   position: absolute;
   inset: 18px;
   border-radius: 50%;
-  background: #2a2a2a center/cover no-repeat;
-  transition: opacity 420ms ease, transform 420ms ease;
-  opacity: 0.72;
+  background: transparent center/cover no-repeat;
+  transition: opacity 320ms ease, transform 320ms ease;
+  opacity: 0;
+  z-index: 1;
 }
 .vinyl-art.has-art {
   opacity: 1;
+}
+.widget.hide-artwork .vinyl-art {
+  opacity: 0 !important;
 }
 .vinyl-hole {
   position: absolute;
@@ -100,8 +134,8 @@ body {
   border-radius: 50%;
   transform: translate(-50%, -50%);
   background: #0b0b0b;
-  box-shadow: 0 0 0 2px rgba(255,255,255,.12);
-  z-index: 2;
+  box-shadow: 0 0 0 2px rgba(255,255,255,.14);
+  z-index: 4;
 }
 .widget.is-playing .vinyl-disc {
   animation: vinyl-spin 4.8s linear infinite;
@@ -113,6 +147,31 @@ body {
 @keyframes vinyl-spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+/* Расширенный: влёт пластинки с перелётом, затем выезд контента */
+.widget.layout-extended:not(.extended-ready) .vinyl {
+  opacity: 0;
+  transform: translateX(-150%) rotate(-42deg);
+}
+.widget.layout-extended:not(.extended-ready) .content {
+  opacity: 0;
+  transform: translateX(-48px);
+}
+.widget.layout-extended.extended-vinyl-in .vinyl {
+  animation: vinyl-fly-in 680ms cubic-bezier(.18,.9,.28,1.35) both;
+}
+.widget.layout-extended.extended-content-in .content {
+  animation: content-slide-from-vinyl 520ms cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes vinyl-fly-in {
+  0% { opacity: 0; transform: translateX(-160%) rotate(-48deg); }
+  72% { opacity: 1; transform: translateX(18px) rotate(9deg); }
+  100% { opacity: 1; transform: translateX(0) rotate(0deg); }
+}
+@keyframes content-slide-from-vinyl {
+  from { opacity: 0; transform: translateX(-52px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 .source-label {

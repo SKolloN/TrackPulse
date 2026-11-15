@@ -118,12 +118,13 @@
         <label>Вид оверлея
           <select id="cfg-layoutPreset">
             <option value="classic">Классика</option>
-            <option value="compact">Компакт</option>
-            <option value="vinyl">Пластинка + обложка</option>
+            <option value="compact">Компактный</option>
+            <option value="extended">Расширенный</option>
           </select>
         </label>
         <label class="check"><input id="cfg-showSourceLabel" type="checkbox"> Показывать источник</label>
-        <label class="check"><input id="cfg-showArtwork" type="checkbox"> Показывать обложку (vinyl)</label>
+        <label id="wrap-showArtwork" class="check"><input id="cfg-showArtwork" type="checkbox"> Показывать обложку</label>
+        <label id="wrap-hideVinyl" class="check"><input id="cfg-hideVinyl" type="checkbox"> Убрать пластинку</label>
         <label class="check"><input id="cfg-hideWhenPaused" type="checkbox"> Скрывать на паузе</label>
       </div>
 

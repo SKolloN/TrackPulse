@@ -48,6 +48,21 @@ async function request(url, options = {}, useAdmin = false) {
   return data;
 }
 
+function migrateLayoutPreset(value) {
+  const raw = String(value || 'classic').toLowerCase();
+  if (raw === 'vinyl') return 'classic';
+  if (raw === 'classic' || raw === 'compact' || raw === 'extended') return raw;
+  return 'classic';
+}
+
+function syncLayoutOptionVisibility() {
+  const layout = document.querySelector('#cfg-layoutPreset').value;
+  const wrapArt = document.querySelector('#wrap-showArtwork');
+  const wrapHide = document.querySelector('#wrap-hideVinyl');
+  if (wrapArt) wrapArt.hidden = layout === 'compact';
+  if (wrapHide) wrapHide.hidden = layout !== 'classic';
+}
+
 function fillThemeForm(theme) {
   themeState = theme;
   const vars = theme.cssVars || {};
@@ -64,14 +79,17 @@ function fillThemeForm(theme) {
   document.querySelector('#var-artist-size').value = vars['artist-size'] || '15px';
   document.querySelector('#cfg-visibleDurationMs').value = cfg.visibleDurationMs ?? 7000;
   document.querySelector('#cfg-scrollSpeedPxPerSecond').value = cfg.scrollSpeedPxPerSecond ?? 42;
-  document.querySelector('#cfg-layoutPreset').value = cfg.layoutPreset || 'vinyl';
+  document.querySelector('#cfg-layoutPreset').value = migrateLayoutPreset(cfg.layoutPreset);
   document.querySelector('#cfg-showSourceLabel').checked = cfg.showSourceLabel !== false;
   document.querySelector('#cfg-showArtwork').checked = cfg.showArtwork !== false;
+  document.querySelector('#cfg-hideVinyl').checked = Boolean(cfg.hideVinyl);
   document.querySelector('#cfg-hideWhenPaused').checked = Boolean(cfg.hideWhenPaused);
+  syncLayoutOptionVisibility();
 }
 
 function readThemeForm() {
   const prev = themeState || { cssVars: {}, config: {} };
+  const layout = migrateLayoutPreset(document.querySelector('#cfg-layoutPreset').value);
   return {
     version: 1,
     cssVars: {
@@ -91,9 +109,10 @@ function readThemeForm() {
       ...(prev.config || {}),
       visibleDurationMs: Number(document.querySelector('#cfg-visibleDurationMs').value) || 7000,
       scrollSpeedPxPerSecond: Number(document.querySelector('#cfg-scrollSpeedPxPerSecond').value) || 42,
-      layoutPreset: document.querySelector('#cfg-layoutPreset').value || 'vinyl',
+      layoutPreset: layout,
       showSourceLabel: document.querySelector('#cfg-showSourceLabel').checked,
-      showArtwork: document.querySelector('#cfg-showArtwork').checked,
+      showArtwork: layout === 'compact' ? false : document.querySelector('#cfg-showArtwork').checked,
+      hideVinyl: layout === 'classic' ? document.querySelector('#cfg-hideVinyl').checked : false,
       hideWhenPaused: document.querySelector('#cfg-hideWhenPaused').checked
     }
   };
@@ -264,6 +283,10 @@ document.querySelector('#saveTheme').addEventListener('click', async () => {
 
 document.querySelector('#reloadPreview').addEventListener('click', () => {
   document.querySelector('#preview').src = `/?t=${Date.now()}`;
+});
+
+document.querySelector('#cfg-layoutPreset').addEventListener('change', () => {
+  syncLayoutOptionVisibility();
 });
 
 for (const button of document.querySelectorAll('.preset')) {

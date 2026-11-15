@@ -35,7 +35,8 @@ $DefaultTheme = [ordered]@{
         scrollSpeedPxPerSecond = 42
         showSourceLabel = $true
         showArtwork = $true
-        layoutPreset = 'vinyl'
+        hideVinyl = $false
+        layoutPreset = 'classic'
         unknownArtistText = 'TrackPulse'
     }
 }

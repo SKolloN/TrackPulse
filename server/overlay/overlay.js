@@ -14,7 +14,8 @@ const config = Object.assign({
   unknownArtistText: 'TrackPulse',
   showSourceLabel: true,
   showArtwork: true,
-  layoutPreset: 'vinyl'
+  hideVinyl: false,
+  layoutPreset: 'classic'
 }, window.OVERLAY_CONFIG || {});
 
 function applyThemePayload(theme) {
@@ -71,6 +72,7 @@ let switchingTimer = null;
 let currentCue = '';
 let lastArtwork = '';
 let eventSource = null;
+let extendedEntranceTimer = null;
 
 const PROVIDER_LABELS = {
   yandex: 'Яндекс Музыка',
@@ -79,14 +81,57 @@ const PROVIDER_LABELS = {
   youtubemusic: 'YouTube Music'
 };
 
+function resolveLayout() {
+  const raw = String(config.layoutPreset || 'classic').toLowerCase();
+  if (raw === 'vinyl') return 'classic';
+  if (raw === 'classic' || raw === 'compact' || raw === 'extended') return raw;
+  return 'classic';
+}
+
+let appliedLayoutKey = '';
+
 function applyLayout() {
-  const preset = String(config.layoutPreset || 'classic').toLowerCase();
-  const allowed = new Set(['classic', 'compact', 'vinyl']);
-  const layout = allowed.has(preset) ? preset : 'classic';
-  elements.widget.classList.remove('layout-classic', 'layout-compact', 'layout-vinyl');
-  elements.widget.classList.add(`layout-${layout}`);
-  const showVinyl = layout === 'vinyl' && config.showArtwork !== false;
+  const layout = resolveLayout();
+  const layoutKey = [
+    layout,
+    Boolean(config.hideVinyl),
+    config.showArtwork !== false
+  ].join('|');
+
+  const layoutChanged = layoutKey !== appliedLayoutKey;
+  if (layoutChanged) {
+    elements.widget.classList.remove(
+      'layout-classic',
+      'layout-compact',
+      'layout-extended',
+      'layout-vinyl',
+      'extended-vinyl-in',
+      'extended-content-in',
+      'extended-ready'
+    );
+    elements.widget.classList.add(`layout-${layout}`);
+    appliedLayoutKey = layoutKey;
+  }
+
+  const showVinyl = layout === 'extended' || (layout === 'classic' && !config.hideVinyl);
   if (elements.vinyl) elements.vinyl.hidden = !showVinyl;
+  elements.widget.classList.toggle('hide-vinyl', layout === 'classic' && Boolean(config.hideVinyl));
+  elements.widget.classList.toggle('hide-artwork', config.showArtwork === false || layout === 'compact');
+}
+
+function playExtendedEntrance() {
+  if (resolveLayout() !== 'extended') return;
+  if (extendedEntranceTimer) clearTimeout(extendedEntranceTimer);
+  elements.widget.classList.remove('extended-vinyl-in', 'extended-content-in', 'extended-ready');
+  void elements.widget.offsetWidth;
+  elements.widget.classList.add('extended-vinyl-in');
+  extendedEntranceTimer = setTimeout(() => {
+    elements.widget.classList.add('extended-content-in');
+    extendedEntranceTimer = setTimeout(() => {
+      elements.widget.classList.add('extended-ready');
+      extendedEntranceTimer = null;
+    }, 540);
+  }, 420);
 }
 
 function formatTime(seconds, unknown = '0:00') {
@@ -162,8 +207,12 @@ function scheduleAutoHide(marqueeDurationMs = 0, minimumVisibleMs = 0) {
 
 function updateArtwork(nextState) {
   if (!elements.vinylArt) return;
-  const url = String(nextState?.artwork || '');
-  if (url === lastArtwork) return;
+  const allowArt = config.showArtwork !== false && resolveLayout() !== 'compact';
+  const url = allowArt ? String(nextState?.artwork || '') : '';
+  if (url === lastArtwork) {
+    elements.widget.classList.toggle('hide-artwork', !allowArt);
+    return;
+  }
   lastArtwork = url;
   if (/^https:\/\//i.test(url)) {
     elements.vinylArt.style.backgroundImage = `url("${url.replace(/\\/g, '').replace(/"/g, '')}")`;
@@ -184,21 +233,30 @@ function updateText(nextState) {
   return updateMarquees();
 }
 
+function finishShowCue(cue, marqueeMs) {
+  const minimumVisibleMs = cue === 'end'
+    ? (Number(config.endTriggerSeconds) || 15) * 1000 + 2500
+    : 0;
+  const entranceBonus = resolveLayout() === 'extended' ? 900 : 0;
+  scheduleAutoHide(marqueeMs + entranceBonus, minimumVisibleMs);
+}
+
 function showCue(cue, { transition = false } = {}) {
   if (!state?.hasTrack || cueSet.has(cue)) return;
   cueSet.add(cue);
   currentCue = cue;
 
   const wasHidden = elements.widget.classList.contains('is-hidden');
-  if (!transition || wasHidden) {
+  const useExtended = resolveLayout() === 'extended';
+  const shouldReplayExtended = useExtended && (wasHidden || cue === 'start');
+
+  if (!transition || wasHidden || shouldReplayExtended) {
     if (switchingTimer) clearTimeout(switchingTimer);
     elements.widget.classList.remove('is-switching-out', 'is-switching-in');
     const marqueeMs = updateText(state);
     showWidget();
-    const minimumVisibleMs = cue === 'end'
-      ? (Number(config.endTriggerSeconds) || 15) * 1000 + 2500
-      : 0;
-    scheduleAutoHide(marqueeMs, minimumVisibleMs);
+    if (shouldReplayExtended) playExtendedEntrance();
+    finishShowCue(cue, marqueeMs);
     return;
   }
 
@@ -211,10 +269,7 @@ function showCue(cue, { transition = false } = {}) {
     const marqueeMs = updateText(state);
     elements.widget.classList.add('is-switching-in');
     showWidget();
-    const minimumVisibleMs = cue === 'end'
-      ? (Number(config.endTriggerSeconds) || 15) * 1000 + 2500
-      : 0;
-    scheduleAutoHide(marqueeMs, minimumVisibleMs);
+    finishShowCue(cue, marqueeMs);
 
     switchingTimer = setTimeout(() => {
       elements.widget.classList.remove('is-switching-in');

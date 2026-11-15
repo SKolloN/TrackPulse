@@ -20,6 +20,7 @@ window.OVERLAY_CONFIG = {
   unknownArtistText: 'TrackPulse',
   showSourceLabel: true,
   showArtwork: true,
-  // classic | compact | vinyl
-  layoutPreset: 'vinyl'
+  hideVinyl: false,
+  // classic | compact | extended
+  layoutPreset: 'classic'
 };
