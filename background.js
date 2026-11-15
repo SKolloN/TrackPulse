@@ -339,7 +339,7 @@ refreshSettings().catch(() => {});
 setInterval(() => refreshSettings().catch(() => {}), 10000);
 setInterval(() => postSourcesSnapshot().catch(() => {}), 4000);
 checkExtensionReload().catch(() => {});
-chrome.alarms.create('trackpulse-reload-check', { periodInMinutes: 0.5 });
+chrome.alarms.create('trackpulse-reload-check', { periodInMinutes: 1 });
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === 'trackpulse-reload-check') {
     checkExtensionReload().catch(() => {});
