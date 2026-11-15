@@ -185,7 +185,18 @@ select { min-width: 220px; border: 1px solid var(--border); border-radius: 11px;
 .history-card { padding: 19px; }
 .history-heading { margin-bottom: 8px; }
 .range { color: var(--muted); font-size: 12px; }
-.table-wrap { overflow: hidden; border: 1px solid var(--border); border-radius: 14px; }
+.table-wrap {
+  max-height: 560px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+.history-sentinel {
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+}
 table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 th, td { padding: 13px 14px; border-bottom: 1px solid rgba(255,255,255,.055); text-align: left; }
 th { color: var(--muted); background: rgba(255,255,255,.025); font-size: 10px; text-transform: uppercase; letter-spacing: .12em; }

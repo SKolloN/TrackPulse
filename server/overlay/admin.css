@@ -140,6 +140,44 @@ input:focus, select:focus {
   max-height: 260px;
   overflow: auto;
 }
+.info-reveal {
+  position: relative;
+  margin: 8px 0 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  outline: none;
+}
+.info-reveal .info-box {
+  margin: 0;
+}
+.info-reveal.is-locked .info-box {
+  filter: blur(7px);
+  user-select: none;
+  pointer-events: none;
+}
+.info-reveal-mask {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: rgba(11, 12, 14, 0.28);
+  transition: opacity 180ms ease;
+}
+.info-reveal:not(.is-locked) .info-reveal-mask {
+  display: none;
+}
+.info-reveal.is-locked:hover .info-reveal-mask,
+.info-reveal.is-locked:focus-visible .info-reveal-mask {
+  background: rgba(11, 12, 14, 0.38);
+}
+.info-reveal .info-reveal-mask .primary {
+  pointer-events: none;
+}
+.card code {
+  font-size: 11px;
+  color: var(--accent);
+}
 .theme-head { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; margin-bottom: 8px; }
 .theme-grid {
   display: grid;

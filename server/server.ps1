@@ -21,7 +21,7 @@ $Listener = $null
 $CurrentHistoryTrackKey = ''
 $CurrentJournalTrackKey = ''
 $AppName = 'trackpulse-obs'
-$AppVersion = '2.3.1'
+$AppVersion = '2.3.2'
 $AllowedProviders = @('yandex', 'vk', 'spotify', 'youtubemusic')
 $ReloadFlagFile = Join-Path $DataRoot 'extension-reload.json'
 $JournalLimit = 5000
@@ -284,9 +284,25 @@ function Finalize-CurrentJournalTrack {
     $script:CurrentJournalTrackKey = ''
 }
 
+function Test-JunkTrack([string]$Title, [string]$Artist) {
+    $Blob = ("{0} {1}" -f $Title, $Artist)
+    if ($Blob -match '(?i)собираем\s+музыку\s+и\s+подкасты') { return $true }
+    if ($Title -match '(?i)^собираем\b') { return $true }
+    if ($Title -match '(?i)собираем музыку') { return $true }
+    return $false
+}
+
 function Update-HistoryFromState {
     $Session = $History['activeSession']
     if ($null -eq $Session) { return }
+
+    if (Test-JunkTrack ([string]$State['title']) ([string]$State['artist'])) {
+        if (-not [string]::IsNullOrEmpty($CurrentHistoryTrackKey)) {
+            Finalize-CurrentHistoryTrack
+            Save-History
+        }
+        return
+    }
 
     $HasTrack = [bool]$State['hasTrack'] -and (-not [string]::IsNullOrWhiteSpace([string]$State['title']) -or -not [string]::IsNullOrWhiteSpace([string]$State['artist']))
     if (-not $HasTrack) {
@@ -334,6 +350,14 @@ function Update-HistoryFromState {
 }
 
 function Update-JournalFromState {
+    if (Test-JunkTrack ([string]$State['title']) ([string]$State['artist'])) {
+        if (-not [string]::IsNullOrEmpty($CurrentJournalTrackKey)) {
+            Finalize-CurrentJournalTrack
+            Save-Journal
+        }
+        return
+    }
+
     $HasTrack = [bool]$State['hasTrack'] -and (-not [string]::IsNullOrWhiteSpace([string]$State['title']) -or -not [string]::IsNullOrWhiteSpace([string]$State['artist']))
     if (-not $HasTrack) {
         if (-not [string]::IsNullOrEmpty($CurrentJournalTrackKey)) {

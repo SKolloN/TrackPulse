@@ -58,7 +58,13 @@
 
       <article class="card">
         <h2>Служебная информация</h2>
-        <div id="infoBox" class="info-box">Загрузка…</div>
+        <p class="hint">API-токен — локальный ключ только для этого ПК. Им расширение и админка подписывают запросы к серверу на <code>127.0.0.1</code> (старт/стоп эфира, запись трека, смена темы). В интернет не уходит; чужой сайт его не получит.</p>
+        <div id="infoReveal" class="info-reveal is-locked" role="button" tabindex="0" aria-label="Отобразить служебную информацию">
+          <div id="infoBox" class="info-box">Загрузка…</div>
+          <div class="info-reveal-mask">
+            <button id="revealInfo" class="primary" type="button">Отобразить</button>
+          </div>
+        </div>
         <div class="row">
           <button id="copyToken" class="ghost" type="button">Копировать API-токен</button>
           <button id="refreshInfo" class="ghost" type="button">Обновить</button>

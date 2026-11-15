@@ -7,6 +7,7 @@ let apiToken = '';
 let infoCache = null;
 let themeState = null;
 let toastTimer = null;
+let infoRevealed = false;
 
 function showToast(message) {
   toast.textContent = message;
@@ -145,6 +146,18 @@ function renderInfo(info) {
     `adminPasswordHash: ${paths.adminPasswordHash}`,
     `logs: ${paths.logs}`
   ].join('\n');
+  syncInfoReveal();
+}
+
+function syncInfoReveal() {
+  const wrap = document.querySelector('#infoReveal');
+  if (!wrap) return;
+  wrap.classList.toggle('is-locked', !infoRevealed);
+}
+
+function revealInfo() {
+  infoRevealed = true;
+  syncInfoReveal();
 }
 
 function renderSources(sources) {
@@ -202,9 +215,25 @@ document.querySelector('#refreshInfo').addEventListener('click', async () => {
 
 document.querySelector('#copyToken').addEventListener('click', async () => {
   if (!infoCache?.apiToken) return;
+  if (!infoRevealed) {
+    revealInfo();
+  }
   await navigator.clipboard.writeText(infoCache.apiToken);
   showToast('API-токен скопирован');
 });
+
+const infoReveal = document.querySelector('#infoReveal');
+if (infoReveal) {
+  infoReveal.addEventListener('click', () => {
+    if (!infoRevealed) revealInfo();
+  });
+  infoReveal.addEventListener('keydown', (event) => {
+    if (!infoRevealed && (event.key === 'Enter' || event.key === ' ')) {
+      event.preventDefault();
+      revealInfo();
+    }
+  });
+}
 
 document.querySelector('#sendTest').addEventListener('click', async () => {
   try {

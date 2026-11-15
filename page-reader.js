@@ -211,6 +211,7 @@
         .replace(/\s*[—–|-]\s*Яндекс Музыка.*$/i, '')
         .replace(/\s*[—–|-]\s*Yandex Music.*$/i, '');
       if (!title || /^Яндекс Музыка$/i.test(title)) return { title: '', artist: '' };
+      if (/собираем\s+музыку\s+и\s+подкасты/i.test(title)) return { title: '', artist: '' };
     } else if (provider === 'vk') {
       title = title
         .replace(/\s*[—–|-]\s*VK.*$/i, '')
@@ -262,9 +263,15 @@
     const fallback = fallbackFromDocumentTitle(provider);
     const vkDom = provider === 'vk' ? readVkDomFallback() : null;
 
-    const title = cleanText(metadata?.title) || cleanText(vkDom?.title) || fallback.title;
-    const artist = cleanText(metadata?.artist) || cleanText(vkDom?.artist) || fallback.artist;
+    let title = cleanText(metadata?.title) || cleanText(vkDom?.title) || fallback.title;
+    let artist = cleanText(metadata?.artist) || cleanText(vkDom?.artist) || fallback.artist;
     const album = cleanText(metadata?.album);
+
+    // Заглушка Яндекса в Media Session / title — не считаем треком.
+    if (/собираем\s+музыку\s+и\s+подкасты/i.test(`${title} ${artist}`)) {
+      title = '';
+      artist = '';
+    }
     const sessionPlaybackState = cleanText(mediaSession?.playbackState);
     const isPlaying = media
       ? !media.paused && !media.ended

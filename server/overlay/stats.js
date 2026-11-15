@@ -52,6 +52,10 @@ let toastTimer = null;
 let renderedFingerprint = '';
 let apiToken = '';
 let daemonMode = false;
+const HISTORY_PAGE_SIZE = 40;
+let historyShown = HISTORY_PAGE_SIZE;
+let historyScrollObserver = null;
+let lastHistoryTracksKey = '';
 
 function showToast(message) {
   elements.toast.textContent = message;
@@ -108,6 +112,12 @@ function getSelectedSession() {
   return sessions.find((session) => session.id === selectedSessionId) || sessions[0] || null;
 }
 
+function isJunkTrack(track) {
+  const blob = `${track?.title || ''} ${track?.artist || ''}`;
+  return /собираем\s+музыку\s+и\s+подкасты/i.test(blob)
+    || /^собираем\b/i.test(String(track?.title || '').trim());
+}
+
 function filterByProvider(tracks) {
   if (providerFilter === 'all') return tracks;
   return tracks.filter((track) => track.provider === providerFilter);
@@ -125,7 +135,15 @@ function getActiveTracks() {
   const base = mode === 'journal'
     ? [...(journalData.tracks || [])].reverse()
     : (getSelectedSession()?.tracks || []);
-  return filterByPeriod(filterByProvider(base));
+  return filterByPeriod(filterByProvider(base.filter((track) => !isJunkTrack(track))));
+}
+
+function resetHistoryPagination(force = false) {
+  const key = `${mode}|${selectedSessionId}|${providerFilter}|${periodFilter}|${(journalData.tracks || []).length}`;
+  if (force || key !== lastHistoryTracksKey) {
+    historyShown = HISTORY_PAGE_SIZE;
+    lastHistoryTracksKey = key;
+  }
 }
 
 function calculateStats(tracks) {
@@ -280,31 +298,82 @@ function render() {
       : '';
   }
 
+  resetHistoryPagination();
+  renderHistoryTable(tracks);
+}
+
+function appendHistoryRow(track, index) {
+  const row = document.createElement('tr');
+  const values = [
+    index + 1,
+    formatClock(track.startedAt),
+    providerText(track),
+    track.artist || 'Неизвестный исполнитель',
+    track.title || 'Без названия',
+    Number(track.duration) > 0 ? formatDuration(track.duration) : '—'
+  ];
+  for (const value of values) {
+    const cell = document.createElement('td');
+    cell.textContent = String(value);
+    row.append(cell);
+  }
+  elements.historyBody.append(row);
+}
+
+function bindHistoryScroll(tracks) {
+  if (historyScrollObserver) {
+    historyScrollObserver.disconnect();
+    historyScrollObserver = null;
+  }
+
+  const wrap = document.querySelector('.table-wrap');
+  const sentinel = document.querySelector('#historySentinel');
+  if (!wrap || !sentinel || historyShown >= tracks.length) {
+    if (sentinel) sentinel.hidden = true;
+    return;
+  }
+
+  sentinel.hidden = false;
+  historyScrollObserver = new IntersectionObserver((entries) => {
+    if (!entries.some((entry) => entry.isIntersecting)) return;
+    const next = Math.min(tracks.length, historyShown + HISTORY_PAGE_SIZE);
+    if (next <= historyShown) return;
+    const previous = historyShown;
+    historyShown = next;
+    for (let index = previous; index < historyShown; index += 1) {
+      appendHistoryRow(tracks[index], index);
+    }
+    if (historyShown >= tracks.length) {
+      sentinel.hidden = true;
+      historyScrollObserver.disconnect();
+      historyScrollObserver = null;
+    }
+  }, { root: wrap, rootMargin: '120px', threshold: 0.01 });
+
+  historyScrollObserver.observe(sentinel);
+}
+
+function renderHistoryTable(tracks) {
   elements.historyBody.innerHTML = '';
   if (!tracks.length) {
     const row = document.createElement('tr');
     row.innerHTML = '<td colspan="6" class="empty-row">Пока нет записанных треков</td>';
     elements.historyBody.append(row);
+    const sentinel = document.querySelector('#historySentinel');
+    if (sentinel) sentinel.hidden = true;
     return;
   }
 
-  tracks.forEach((track, index) => {
-    const row = document.createElement('tr');
-    const values = [
-      index + 1,
-      formatClock(track.startedAt),
-      providerText(track),
-      track.artist || 'Неизвестный исполнитель',
-      track.title || 'Без названия',
-      Number(track.duration) > 0 ? formatDuration(track.duration) : '—'
-    ];
-    for (const value of values) {
-      const cell = document.createElement('td');
-      cell.textContent = String(value);
-      row.append(cell);
-    }
-    elements.historyBody.append(row);
-  });
+  const visible = mode === 'journal'
+    ? tracks.slice(0, historyShown)
+    : tracks;
+
+  if (mode !== 'journal') {
+    historyShown = tracks.length;
+  }
+
+  visible.forEach((track, index) => appendHistoryRow(track, index));
+  bindHistoryScroll(mode === 'journal' ? tracks : []);
 }
 
 async function ensureToken() {
@@ -514,21 +583,25 @@ elements.sessionToggle.addEventListener('click', async () => {
 
 elements.modeSelect.addEventListener('change', () => {
   mode = elements.modeSelect.value;
+  resetHistoryPagination(true);
   render();
 });
 
 elements.sessionSelect.addEventListener('change', () => {
   selectedSessionId = elements.sessionSelect.value;
+  resetHistoryPagination(true);
   render();
 });
 
 elements.providerFilter.addEventListener('change', () => {
   providerFilter = elements.providerFilter.value;
+  resetHistoryPagination(true);
   render();
 });
 
 elements.periodFilter.addEventListener('change', () => {
   periodFilter = elements.periodFilter.value;
+  resetHistoryPagination(true);
   render();
 });
 
