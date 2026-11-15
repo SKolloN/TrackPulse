@@ -1,4 +1,4 @@
-# TrackPulse — Now Playing для OBS
+1# TrackPulse — Now Playing для OBS
 
 Локальное расширение для Edge/Chrome + маленький сервер на вашем ПК.  
 Показывает **текущий трек** в OBS из вкладок:
@@ -10,8 +10,6 @@
 
 Данные треков **не уходят в интернет** — только на `127.0.0.1`.  
 Проверка обновлений ходит на GitHub (по кнопке / таймеру в popup).
-
-Репозиторий: [github.com/SKolloN/TrackPulse](https://github.com/SKolloN/TrackPulse)
 
 ## Быстрый старт
 
