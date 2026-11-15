@@ -95,7 +95,7 @@ async function refresh() {
     ? `${state.artist || 'Неизвестный исполнитель'} — ${state.title || 'Без названия'}${state.isPlaying ? '' : ' · пауза'}`
     : 'Откройте Яндекс / VK / Spotify / YouTube Music и включите трек.';
 
-  const error = serverResponse?.ok ? '' : (stored.lastError || serverResponse?.error || 'Запустите INSTALL.bat или START.bat');
+  const error = serverResponse?.ok ? '' : (stored.lastError || serverResponse?.error || 'Запустите INSTALL.bat, START.bat или start-daemon.bat');
   errorBox.hidden = !error;
   errorBox.textContent = error;
 }

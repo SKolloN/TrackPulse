@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "TrackPulse — Now Playing для OBS",
   "short_name": "TrackPulse",
-  "version": "2.3.4",
+  "version": "2.3.5",
   "description": "Локально показывает текущий трек из Яндекс Музыки, VK, Spotify или YouTube Music в OBS. Данные не уходят в интернет.",
   "author": "SKolloN",
   "homepage_url": "https://github.com/SKolloN/TrackPulse",

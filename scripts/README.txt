@@ -1,17 +1,17 @@
-Extra TrackPulse scripts (optional).
+Дополнительные скрипты TrackPulse.
 
-Main actions live in the project root:
-  INSTALL.bat  — first-time setup
-  UPDATE.bat   — update from GitHub
-  START.bat    — tray icon + server
-  STOP.bat     — stop local server
+Основные действия — в корне проекта:
+  INSTALL.bat       — первая установка
+  UPDATE.bat        — обновление с GitHub
+  START.bat         — трей + сервер
+  start-daemon.bat  — только фоновый сервер (без трея, без окна CMD)
+  STOP.bat          — остановить сервер
 
-This folder:
-  start-daemon.bat / start-server-only.bat — server without tray
-  start-overlay.bat — server + open overlay in browser
-  start-tray.bat — same as root START.bat
-  stop-overlay.bat — same as root STOP.bat
-  diagnose-server.bat — console diagnostics
-  test-overlay.bat — send a test track
-  install-autostart.bat / remove-autostart.bat — Windows logon autostart
-  SETUP.bat — alias of INSTALL.bat
+В этой папке:
+  start-overlay.bat / start-server-only.bat — варианты запуска
+  start-tray.bat / start-daemon.bat — ярлыки на корневые файлы
+  stop-overlay.bat — то же, что STOP.bat
+  diagnose-server.bat — диагностика в консоли
+  test-overlay.bat — тестовый трек
+  install-autostart.bat / remove-autostart.bat — автозапуск Windows
+  SETUP.bat — то же, что INSTALL.bat

@@ -43,7 +43,7 @@ TrackPulse — almost done
    Width: 800  Height: 150  FPS: 30
 
 Server is already running in daemon mode.
-Later: START.bat (tray), UPDATE.bat for updates, STOP.bat to stop. Extra tools: scripts\
+Дальше: start-daemon.bat (фон без окна) или START.bat (трей), UPDATE.bat, STOP.bat. Дополнительно: scripts\
 "@
 
 Write-Host '[4/4] Showing checklist...' -ForegroundColor Yellow
