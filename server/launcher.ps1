@@ -5,7 +5,7 @@
 )
 
 $ErrorActionPreference = 'Stop'
-$ExpectedVersion = '2.3.3'
+$ExpectedVersion = '2.3.4'
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectRoot = Split-Path -Parent $Root
 $ServerScript = Join-Path $Root 'server.ps1'
@@ -71,7 +71,7 @@ function Stop-LegacyServer {
 }
 
 function Show-LaunchError([string]$Details) {
-    $Message = "Не удалось запустить локальный сервер TrackPulse на порту $Port.`n`n$Details`n`nДля подробной проверки запустите diagnose-server.bat."
+    $Message = "Не удалось запустить локальный сервер TrackPulse на порту $Port.`n`n$Details`n`nДля подробной проверки запустите scripts\diagnose-server.bat."
     try {
         Add-Type -AssemblyName PresentationFramework
         [System.Windows.MessageBox]::Show($Message, 'TrackPulse') | Out-Null

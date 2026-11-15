@@ -69,7 +69,7 @@ async function checkForUpdates(manual = false) {
 
     if (compareVersions(remote, localVersion) > 0) {
       updateBanner.hidden = false;
-      updateBanner.textContent = `Доступна ${remote}. Запустите UPDATE.bat в папке расширения, затем Reload в edge://extensions.`;
+      updateBanner.textContent = `Доступна ${remote}. Запустите UPDATE.bat, затем Reload в edge://extensions.`;
       if (manual) {
         const open = window.confirm(`Найдена версия ${remote}. Открыть страницу релизов?`);
         if (open) chrome.tabs.create({ url: GITHUB_RELEASES });
@@ -95,7 +95,7 @@ async function refresh() {
     ? `${state.artist || 'Неизвестный исполнитель'} — ${state.title || 'Без названия'}${state.isPlaying ? '' : ' · пауза'}`
     : 'Откройте Яндекс / VK / Spotify / YouTube Music и включите трек.';
 
-  const error = serverResponse?.ok ? '' : (stored.lastError || serverResponse?.error || 'Запустите INSTALL.bat или start-daemon.bat');
+  const error = serverResponse?.ok ? '' : (stored.lastError || serverResponse?.error || 'Запустите INSTALL.bat или START.bat');
   errorBox.hidden = !error;
   errorBox.textContent = error;
 }
