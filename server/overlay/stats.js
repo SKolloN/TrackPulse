@@ -31,6 +31,11 @@ const elements = {
   topArtistsChart: document.querySelector('#topArtistsChart'),
   historyBody: document.querySelector('#historyBody'),
   historyTitle: document.querySelector('#historyTitle'),
+  historyPagination: document.querySelector('#historyPagination'),
+  historyPrev: document.querySelector('#historyPrev'),
+  historyNext: document.querySelector('#historyNext'),
+  historyPageButtons: document.querySelector('#historyPageButtons'),
+  historyPageInfo: document.querySelector('#historyPageInfo'),
   sessionRange: document.querySelector('#sessionRange'),
   lockButton: document.querySelector('#lockButton'),
   openAdminButton: document.querySelector('#openAdminButton'),
@@ -53,8 +58,7 @@ let renderedFingerprint = '';
 let apiToken = '';
 let daemonMode = false;
 const HISTORY_PAGE_SIZE = 40;
-let historyShown = HISTORY_PAGE_SIZE;
-let historyScrollObserver = null;
+let historyPage = 1;
 let lastHistoryTracksKey = '';
 
 function showToast(message) {
@@ -138,12 +142,24 @@ function getActiveTracks() {
   return filterByPeriod(filterByProvider(base.filter((track) => !isJunkTrack(track))));
 }
 
-function resetHistoryPagination(force = false) {
-  const key = `${mode}|${selectedSessionId}|${providerFilter}|${periodFilter}|${(journalData.tracks || []).length}`;
+function historyDatasetKey(trackCount = 0) {
+  return `${mode}|${selectedSessionId}|${providerFilter}|${periodFilter}|${trackCount}`;
+}
+
+function resetHistoryPagination(force = false, trackCount = 0) {
+  const key = historyDatasetKey(trackCount);
   if (force || key !== lastHistoryTracksKey) {
-    historyShown = HISTORY_PAGE_SIZE;
+    historyPage = 1;
     lastHistoryTracksKey = key;
   }
+}
+
+function totalHistoryPages(trackCount) {
+  return Math.max(1, Math.ceil(Math.max(0, trackCount) / HISTORY_PAGE_SIZE));
+}
+
+function clampHistoryPage(trackCount) {
+  historyPage = Math.min(Math.max(1, historyPage), totalHistoryPages(trackCount));
 }
 
 function calculateStats(tracks) {
@@ -298,7 +314,7 @@ function render() {
       : '';
   }
 
-  resetHistoryPagination();
+  resetHistoryPagination(false, tracks.length);
   renderHistoryTable(tracks);
 }
 
@@ -320,37 +336,66 @@ function appendHistoryRow(track, index) {
   elements.historyBody.append(row);
 }
 
-function bindHistoryScroll(tracks) {
-  if (historyScrollObserver) {
-    historyScrollObserver.disconnect();
-    historyScrollObserver = null;
+function buildPageList(current, total) {
+  if (total <= 7) return Array.from({ length: total }, (_, index) => index + 1);
+
+  const pages = new Set([1, total, current, current - 1, current + 1]);
+  if (current <= 3) {
+    pages.add(2);
+    pages.add(3);
+    pages.add(4);
+  }
+  if (current >= total - 2) {
+    pages.add(total - 1);
+    pages.add(total - 2);
+    pages.add(total - 3);
   }
 
-  const wrap = document.querySelector('.table-wrap');
-  const sentinel = document.querySelector('#historySentinel');
-  if (!wrap || !sentinel || historyShown >= tracks.length) {
-    if (sentinel) sentinel.hidden = true;
+  return [...pages].filter((page) => page >= 1 && page <= total).sort((a, b) => a - b);
+}
+
+function renderHistoryPagination(trackCount) {
+  const totalPages = totalHistoryPages(trackCount);
+  const showControls = trackCount > HISTORY_PAGE_SIZE;
+
+  if (!elements.historyPagination) return;
+  elements.historyPagination.hidden = !showControls;
+  if (!showControls) {
+    if (elements.historyPageButtons) elements.historyPageButtons.innerHTML = '';
+    if (elements.historyPageInfo) elements.historyPageInfo.textContent = '';
     return;
   }
 
-  sentinel.hidden = false;
-  historyScrollObserver = new IntersectionObserver((entries) => {
-    if (!entries.some((entry) => entry.isIntersecting)) return;
-    const next = Math.min(tracks.length, historyShown + HISTORY_PAGE_SIZE);
-    if (next <= historyShown) return;
-    const previous = historyShown;
-    historyShown = next;
-    for (let index = previous; index < historyShown; index += 1) {
-      appendHistoryRow(tracks[index], index);
-    }
-    if (historyShown >= tracks.length) {
-      sentinel.hidden = true;
-      historyScrollObserver.disconnect();
-      historyScrollObserver = null;
-    }
-  }, { root: wrap, rootMargin: '120px', threshold: 0.01 });
+  const start = (historyPage - 1) * HISTORY_PAGE_SIZE + 1;
+  const end = Math.min(trackCount, historyPage * HISTORY_PAGE_SIZE);
+  elements.historyPageInfo.textContent = `${start}–${end} из ${trackCount}`;
+  elements.historyPrev.disabled = historyPage <= 1;
+  elements.historyNext.disabled = historyPage >= totalPages;
 
-  historyScrollObserver.observe(sentinel);
+  elements.historyPageButtons.innerHTML = '';
+  const pages = buildPageList(historyPage, totalPages);
+  let previous = 0;
+  for (const page of pages) {
+    if (previous && page - previous > 1) {
+      const ellipsis = document.createElement('span');
+      ellipsis.className = 'pagination-ellipsis';
+      ellipsis.textContent = '…';
+      elements.historyPageButtons.append(ellipsis);
+    }
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = `pagination-page${page === historyPage ? ' is-active' : ''}`;
+    button.textContent = String(page);
+    button.setAttribute('aria-label', `Страница ${page}`);
+    if (page === historyPage) button.setAttribute('aria-current', 'page');
+    button.addEventListener('click', () => {
+      if (page === historyPage) return;
+      historyPage = page;
+      renderHistoryTable(getActiveTracks());
+    });
+    elements.historyPageButtons.append(button);
+    previous = page;
+  }
 }
 
 function renderHistoryTable(tracks) {
@@ -359,21 +404,18 @@ function renderHistoryTable(tracks) {
     const row = document.createElement('tr');
     row.innerHTML = '<td colspan="6" class="empty-row">Пока нет записанных треков</td>';
     elements.historyBody.append(row);
-    const sentinel = document.querySelector('#historySentinel');
-    if (sentinel) sentinel.hidden = true;
+    renderHistoryPagination(0);
     return;
   }
 
-  const visible = mode === 'journal'
-    ? tracks.slice(0, historyShown)
-    : tracks;
+  clampHistoryPage(tracks.length);
+  const start = (historyPage - 1) * HISTORY_PAGE_SIZE;
+  const visible = tracks.slice(start, start + HISTORY_PAGE_SIZE);
+  visible.forEach((track, index) => appendHistoryRow(track, start + index));
+  renderHistoryPagination(tracks.length);
 
-  if (mode !== 'journal') {
-    historyShown = tracks.length;
-  }
-
-  visible.forEach((track, index) => appendHistoryRow(track, index));
-  bindHistoryScroll(mode === 'journal' ? tracks : []);
+  const wrap = document.querySelector('.table-wrap');
+  if (wrap) wrap.scrollTop = 0;
 }
 
 async function ensureToken() {
@@ -583,26 +625,39 @@ elements.sessionToggle.addEventListener('click', async () => {
 
 elements.modeSelect.addEventListener('change', () => {
   mode = elements.modeSelect.value;
-  resetHistoryPagination(true);
+  resetHistoryPagination(true, getActiveTracks().length);
   render();
 });
 
 elements.sessionSelect.addEventListener('change', () => {
   selectedSessionId = elements.sessionSelect.value;
-  resetHistoryPagination(true);
+  resetHistoryPagination(true, getActiveTracks().length);
   render();
 });
 
 elements.providerFilter.addEventListener('change', () => {
   providerFilter = elements.providerFilter.value;
-  resetHistoryPagination(true);
+  resetHistoryPagination(true, getActiveTracks().length);
   render();
 });
 
 elements.periodFilter.addEventListener('change', () => {
   periodFilter = elements.periodFilter.value;
-  resetHistoryPagination(true);
+  resetHistoryPagination(true, getActiveTracks().length);
   render();
+});
+
+elements.historyPrev.addEventListener('click', () => {
+  if (historyPage <= 1) return;
+  historyPage -= 1;
+  renderHistoryTable(getActiveTracks());
+});
+
+elements.historyNext.addEventListener('click', () => {
+  const tracks = getActiveTracks();
+  if (historyPage >= totalHistoryPages(tracks.length)) return;
+  historyPage += 1;
+  renderHistoryTable(tracks);
 });
 
 elements.refreshButton.addEventListener('click', () => loadAll(false, true));

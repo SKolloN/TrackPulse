@@ -150,8 +150,13 @@
             <tr><td colspan="6" class="empty-row">Пока нет записанных треков</td></tr>
           </tbody>
         </table>
-        <div id="historySentinel" class="history-sentinel" hidden aria-hidden="true"></div>
       </div>
+      <nav id="historyPagination" class="history-pagination" hidden aria-label="Страницы хронологии">
+        <button id="historyPrev" class="ghost pagination-btn" type="button">Назад</button>
+        <div id="historyPageButtons" class="pagination-pages"></div>
+        <span id="historyPageInfo" class="pagination-info"></span>
+        <button id="historyNext" class="ghost pagination-btn" type="button">Вперёд</button>
+      </nav>
     </section>
   </main>
 

@@ -92,9 +92,10 @@ function chooseState() {
   const pickNewest = (list) => [...list].sort((a, b) => b.receivedAt - a.receivedAt)[0];
 
   let chosen = null;
+  const preferExact = ALLOWED_PROVIDERS.has(preferred) ? preferred : '';
   if (playing.length) {
-    if (preferred === 'yandex' || preferred === 'vk') {
-      chosen = playing.find((state) => state.provider === preferred) || pickNewest(playing);
+    if (preferExact) {
+      chosen = playing.find((state) => state.provider === preferExact) || pickNewest(playing);
     } else if (stickyProvider) {
       chosen = playing.find((state) => state.provider === stickyProvider) || pickNewest(playing);
     } else {
@@ -102,9 +103,9 @@ function chooseState() {
     }
     stickyProvider = chosen.provider;
   } else {
-    // Ничего не играет: держимся за последний активный провайдер, чтобы VK→Яндекс не мигал пустотой.
-    if (preferred === 'yandex' || preferred === 'vk') {
-      chosen = states.find((state) => state.provider === preferred) || pickNewest(states);
+    // Ничего не играет: держимся за последний активный провайдер, чтобы источник не мигал пустотой.
+    if (preferExact) {
+      chosen = states.find((state) => state.provider === preferExact) || pickNewest(states);
     } else if (stickyProvider) {
       chosen = states.find((state) => state.provider === stickyProvider) || pickNewest(states);
     } else {

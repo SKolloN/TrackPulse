@@ -5,7 +5,7 @@
 )
 
 $ErrorActionPreference = 'Stop'
-$ExpectedVersion = '2.3.2'
+$ExpectedVersion = '2.3.3'
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectRoot = Split-Path -Parent $Root
 $ServerScript = Join-Path $Root 'server.ps1'

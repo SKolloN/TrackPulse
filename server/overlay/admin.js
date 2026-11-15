@@ -112,8 +112,10 @@ function readThemeForm() {
       scrollSpeedPxPerSecond: Number(document.querySelector('#cfg-scrollSpeedPxPerSecond').value) || 42,
       layoutPreset: layout,
       showSourceLabel: document.querySelector('#cfg-showSourceLabel').checked,
-      showArtwork: layout === 'compact' ? false : document.querySelector('#cfg-showArtwork').checked,
-      hideVinyl: layout === 'classic' ? document.querySelector('#cfg-hideVinyl').checked : false,
+      // Keep checkbox values even when the control is hidden for the current layout.
+      // Compact never shows artwork in the overlay; classic-only vinyl toggle is applied in overlay.js.
+      showArtwork: document.querySelector('#cfg-showArtwork').checked,
+      hideVinyl: document.querySelector('#cfg-hideVinyl').checked,
       hideWhenPaused: document.querySelector('#cfg-hideWhenPaused').checked
     }
   };
