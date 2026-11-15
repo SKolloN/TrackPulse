@@ -5,7 +5,7 @@
   window.__TRACKPULSE_CONTENT_BRIDGE__ = true;
 
   const EVENT_NAME = 'trackpulse-now-playing';
-  const ALLOWED_PROVIDERS = new Set(['yandex', 'vk']);
+  const ALLOWED_PROVIDERS = new Set(['yandex', 'vk', 'spotify', 'youtubemusic']);
 
   function sanitize(detail) {
     if (!detail || !ALLOWED_PROVIDERS.has(detail.provider)) return null;

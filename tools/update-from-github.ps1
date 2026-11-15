@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string]$Repo = 'SKolloN/TrackPulse',
     [string]$Tag = 'latest'
 )
@@ -82,13 +82,29 @@ foreach ($name in $Preserve) {
 
 Remove-Item -LiteralPath $TempRoot -Recurse -Force -ErrorAction SilentlyContinue
 
+$VersionTag = ([string]$release.tag_name).TrimStart('v', 'V')
+$ReloadFlag = Join-Path $ProjectRoot 'data\extension-reload.json'
+New-Item -ItemType Directory -Path (Join-Path $ProjectRoot 'data') -Force | Out-Null
+@{
+    version = $VersionTag
+    requestedAt = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
+} | ConvertTo-Json | Set-Content -LiteralPath $ReloadFlag -Encoding UTF8
+
+# Restart local daemon so extension can auto-reload against the new server.
+try {
+    $Launcher = Join-Path $ProjectRoot 'server\launcher.ps1'
+    if (Test-Path -LiteralPath $Launcher) {
+        Start-Process -FilePath 'powershell.exe' -WindowStyle Hidden -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$Launcher`" -Daemon -NoBrowser" | Out-Null
+    }
+} catch {}
+
 Write-Host "Updated to $($release.tag_name)" -ForegroundColor Green
-Write-Host 'Now open edge://extensions and click Reload on TrackPulse.' -ForegroundColor Cyan
+Write-Host 'Extension will try auto-reload. If not, open edge://extensions and click Reload.' -ForegroundColor Cyan
 
 try {
     Add-Type -AssemblyName PresentationFramework
     [System.Windows.MessageBox]::Show(
-        "Updated to $($release.tag_name)`n`nOpen edge://extensions and click Reload on TrackPulse.`nYour data\ folder was preserved.",
+        "Updated to $($release.tag_name)`n`nTrackPulse попробует перезагрузить расширение сам.`nЕсли нет — откройте edge://extensions и нажмите Reload.`nПапка data\ сохранена.",
         'TrackPulse Update'
     ) | Out-Null
 } catch {}

@@ -42,6 +42,24 @@
         <select id="sessionSelect"></select>
       </label>
       <label>
+        <span>Источник</span>
+        <select id="providerFilter">
+          <option value="all">Все</option>
+          <option value="yandex">Яндекс Музыка</option>
+          <option value="vk">VK</option>
+          <option value="spotify">Spotify</option>
+          <option value="youtubemusic">YouTube Music</option>
+        </select>
+      </label>
+      <label>
+        <span>Период топов</span>
+        <select id="periodFilter">
+          <option value="all">Всё время</option>
+          <option value="7">7 дней</option>
+          <option value="30">30 дней</option>
+        </select>
+      </label>
+      <label>
         <span>Экспорт с</span>
         <input id="exportFrom" type="datetime-local">
       </label>
@@ -51,7 +69,9 @@
       </label>
       <div class="toolbar-actions">
         <button id="refreshButton" class="ghost" type="button">Обновить</button>
-        <button id="exportButton" class="ghost" type="button">Экспорт CSV</button>
+        <button id="exportCsvButton" class="ghost" type="button">CSV</button>
+        <button id="exportMdButton" class="ghost" type="button">Markdown</button>
+        <button id="exportHtmlButton" class="ghost" type="button">HTML</button>
         <button id="clearButton" class="danger" type="button">Очистить</button>
       </div>
     </section>

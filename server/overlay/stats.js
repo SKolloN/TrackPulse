@@ -8,8 +8,12 @@ const elements = {
   modeSelect: document.querySelector('#modeSelect'),
   sessionSelect: document.querySelector('#sessionSelect'),
   sessionSelectWrap: document.querySelector('#sessionSelectWrap'),
+  providerFilter: document.querySelector('#providerFilter'),
+  periodFilter: document.querySelector('#periodFilter'),
   refreshButton: document.querySelector('#refreshButton'),
-  exportButton: document.querySelector('#exportButton'),
+  exportCsvButton: document.querySelector('#exportCsvButton'),
+  exportMdButton: document.querySelector('#exportMdButton'),
+  exportHtmlButton: document.querySelector('#exportHtmlButton'),
   clearButton: document.querySelector('#clearButton'),
   exportFrom: document.querySelector('#exportFrom'),
   exportTo: document.querySelector('#exportTo'),
@@ -41,6 +45,8 @@ let historyData = { activeSession: null, sessions: [], daemonMode: false };
 let journalData = { tracks: [] };
 let selectedSessionId = 'active';
 let mode = 'journal';
+let providerFilter = 'all';
+let periodFilter = 'all';
 let loading = false;
 let toastTimer = null;
 let renderedFingerprint = '';
@@ -84,6 +90,8 @@ function providerText(track) {
   if (track.providerLabel) return track.providerLabel;
   if (track.provider === 'vk') return 'VK';
   if (track.provider === 'yandex') return 'Яндекс Музыка';
+  if (track.provider === 'spotify') return 'Spotify';
+  if (track.provider === 'youtubemusic') return 'YouTube Music';
   return '—';
 }
 
@@ -100,9 +108,24 @@ function getSelectedSession() {
   return sessions.find((session) => session.id === selectedSessionId) || sessions[0] || null;
 }
 
+function filterByProvider(tracks) {
+  if (providerFilter === 'all') return tracks;
+  return tracks.filter((track) => track.provider === providerFilter);
+}
+
+function filterByPeriod(tracks) {
+  if (periodFilter === 'all') return tracks;
+  const days = Number(periodFilter) || 0;
+  if (days <= 0) return tracks;
+  const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+  return tracks.filter((track) => Number(track.startedAt) >= cutoff);
+}
+
 function getActiveTracks() {
-  if (mode === 'journal') return [...(journalData.tracks || [])].reverse();
-  return getSelectedSession()?.tracks || [];
+  const base = mode === 'journal'
+    ? [...(journalData.tracks || [])].reverse()
+    : (getSelectedSession()?.tracks || []);
+  return filterByPeriod(filterByProvider(base));
 }
 
 function calculateStats(tracks) {
@@ -316,6 +339,8 @@ async function loadAll(silent = false, force = false) {
     const fingerprint = JSON.stringify({
       mode,
       selectedSessionId,
+      providerFilter,
+      periodFilter,
       daemonMode,
       activeSession: nextHistory.activeSession || null,
       sessions: nextHistory.sessions || [],
@@ -340,7 +365,7 @@ function parseLocalInput(value) {
   return Number.isFinite(ms) ? ms : null;
 }
 
-function exportCsv() {
+function getExportTracks() {
   const fromMs = parseLocalInput(elements.exportFrom.value);
   const toMs = parseLocalInput(elements.exportTo.value);
   let tracks = getActiveTracks();
@@ -353,7 +378,21 @@ function exportCsv() {
       return true;
     });
   }
+  return tracks;
+}
 
+function downloadBlob(content, mime, filename) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportCsv() {
+  const tracks = getExportTracks();
   if (!tracks.length) {
     showToast('В выбранном промежутке нет треков');
     return;
@@ -371,14 +410,88 @@ function exportCsv() {
     ].map((value) => `"${String(value).replace(/"/g, '""')}"`));
   }
 
-  const blob = new Blob([lines.map((line) => line.join(',')).join('\n')], { type: 'text/csv;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = mode === 'journal' ? 'trackpulse-journal-range.csv' : 'trackpulse-stream-range.csv';
-  anchor.click();
-  URL.revokeObjectURL(url);
+  downloadBlob(
+    lines.map((line) => line.join(',')).join('\n'),
+    'text/csv;charset=utf-8',
+    mode === 'journal' ? 'trackpulse-journal.csv' : 'trackpulse-stream.csv'
+  );
   showToast(`CSV: ${tracks.length} трек(ов)`);
+}
+
+function exportMarkdown() {
+  const tracks = getExportTracks();
+  if (!tracks.length) {
+    showToast('В выбранном промежутке нет треков');
+    return;
+  }
+
+  const stats = calculateStats(tracks);
+  const lines = [
+    '# TrackPulse export',
+    '',
+    `- Mode: ${mode}`,
+    `- Tracks: ${stats.count}`,
+    `- Unique: ${stats.unique}`,
+    `- Total duration: ${formatDuration(stats.total)}`,
+    '',
+    '| Time | Source | Artist | Title | Duration |',
+    '| --- | --- | --- | --- | --- |'
+  ];
+
+  for (const track of tracks) {
+    lines.push(
+      `| ${formatDateTime(track.startedAt)} | ${providerText(track)} | ${(track.artist || '').replace(/\|/g, '/')} | ${(track.title || '').replace(/\|/g, '/')} | ${Number(track.duration) > 0 ? formatDuration(track.duration) : '—'} |`
+    );
+  }
+
+  downloadBlob(
+    lines.join('\n'),
+    'text/markdown;charset=utf-8',
+    mode === 'journal' ? 'trackpulse-journal.md' : 'trackpulse-stream.md'
+  );
+  showToast(`Markdown: ${tracks.length} трек(ов)`);
+}
+
+function exportHtml() {
+  const tracks = getExportTracks();
+  if (!tracks.length) {
+    showToast('В выбранном промежутке нет треков');
+    return;
+  }
+
+  const stats = calculateStats(tracks);
+  const rows = tracks.map((track, index) => `
+    <tr>
+      <td>${index + 1}</td>
+      <td>${formatDateTime(track.startedAt)}</td>
+      <td>${providerText(track)}</td>
+      <td>${(track.artist || '').replace(/</g, '&lt;')}</td>
+      <td>${(track.title || '').replace(/</g, '&lt;')}</td>
+      <td>${Number(track.duration) > 0 ? formatDuration(track.duration) : '—'}</td>
+    </tr>`).join('');
+
+  const html = `<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><title>TrackPulse export</title>
+<style>
+body{font-family:Segoe UI,sans-serif;background:#111;color:#eee;padding:24px}
+table{border-collapse:collapse;width:100%}
+th,td{border:1px solid #333;padding:8px;text-align:left}
+th{background:#1b1b1f}
+</style></head><body>
+<h1>TrackPulse export</h1>
+<p>Tracks: ${stats.count} · Unique: ${stats.unique} · Total: ${formatDuration(stats.total)}</p>
+<table>
+<thead><tr><th>#</th><th>Time</th><th>Source</th><th>Artist</th><th>Title</th><th>Duration</th></tr></thead>
+<tbody>${rows}</tbody>
+</table>
+</body></html>`;
+
+  downloadBlob(
+    html,
+    'text/html;charset=utf-8',
+    mode === 'journal' ? 'trackpulse-journal.html' : 'trackpulse-stream.html'
+  );
+  showToast(`HTML: ${tracks.length} трек(ов)`);
 }
 
 elements.sessionToggle.addEventListener('click', async () => {
@@ -409,8 +522,20 @@ elements.sessionSelect.addEventListener('change', () => {
   render();
 });
 
+elements.providerFilter.addEventListener('change', () => {
+  providerFilter = elements.providerFilter.value;
+  render();
+});
+
+elements.periodFilter.addEventListener('change', () => {
+  periodFilter = elements.periodFilter.value;
+  render();
+});
+
 elements.refreshButton.addEventListener('click', () => loadAll(false, true));
-elements.exportButton.addEventListener('click', () => exportCsv());
+elements.exportCsvButton.addEventListener('click', () => exportCsv());
+elements.exportMdButton.addEventListener('click', () => exportMarkdown());
+elements.exportHtmlButton.addEventListener('click', () => exportHtml());
 
 elements.clearButton.addEventListener('click', async () => {
   const confirmed = window.confirm(

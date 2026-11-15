@@ -34,6 +34,8 @@ $DefaultTheme = [ordered]@{
         emptyHideDelayMs = 500
         scrollSpeedPxPerSecond = 42
         showSourceLabel = $true
+        showArtwork = $true
+        layoutPreset = 'vinyl'
         unknownArtistText = 'TrackPulse'
     }
 }
@@ -216,7 +218,9 @@ function Apply-TestTrackState($Incoming) {
     $Provider = 'yandex'
     if ($Incoming.PSObject.Properties.Name -contains 'provider') {
         $Candidate = [string]$Incoming.provider
-        if ($Candidate -eq 'vk' -or $Candidate -eq 'yandex') { $Provider = $Candidate }
+        if ($Candidate -eq 'vk' -or $Candidate -eq 'yandex' -or $Candidate -eq 'spotify' -or $Candidate -eq 'youtubemusic') {
+            $Provider = $Candidate
+        }
     }
 
     $Title = if ($Incoming.PSObject.Properties.Name -contains 'title') { ([string]$Incoming.title).Trim() } else { 'Тестовый трек TrackPulse' }

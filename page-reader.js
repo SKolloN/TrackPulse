@@ -29,6 +29,8 @@
     if (host === 'vk.com' || host === 'm.vk.com' || host === 'vk.ru' || host.endsWith('.vk.com') || host.endsWith('.vk.ru')) {
       return 'vk';
     }
+    if (host === 'open.spotify.com' || host.endsWith('.spotify.com')) return 'spotify';
+    if (host === 'music.youtube.com') return 'youtubemusic';
     return 'unknown';
   }
 
@@ -215,12 +217,22 @@
         .replace(/\s*[—–|-]\s*ВКонтакте.*$/i, '')
         .replace(/^Аудиозаписи\s*[—–|-]\s*/i, '');
       if (!title || /^(VK|ВКонтакте|Аудиозаписи)$/i.test(title)) return { title: '', artist: '' };
+    } else if (provider === 'spotify') {
+      title = title.replace(/\s*[•·|-]\s*Spotify.*$/i, '').replace(/\s*[—–|-]\s*Spotify.*$/i, '');
+      if (!title || /^Spotify$/i.test(title)) return { title: '', artist: '' };
+    } else if (provider === 'youtubemusic') {
+      title = title
+        .replace(/\s*[—–|-]\s*YouTube Music.*$/i, '')
+        .replace(/\s*[—–|-]\s*YouTube.*$/i, '');
+      if (!title || /^(YouTube Music|YouTube)$/i.test(title)) return { title: '', artist: '' };
     }
 
-    const parts = title.split(/\s+[—–]\s+/).map(cleanText).filter(Boolean);
+    const parts = title.split(/\s+[—–•·]\s+/).map(cleanText).filter(Boolean);
     if (parts.length >= 2) {
-      // Яндекс чаще: «Трек — Артист», ВК часто: «Артист — Трек» в title.
-      if (provider === 'vk') return { artist: parts[0], title: parts.slice(1).join(' — ') };
+      // Яндекс чаще: «Трек — Артист», ВК/Spotify часто: «Артист — Трек» в title.
+      if (provider === 'vk' || provider === 'spotify') {
+        return { artist: parts[0], title: parts.slice(1).join(' — ') };
+      }
       return { title: parts[0], artist: parts.slice(1).join(' — ') };
     }
     return { title, artist: '' };

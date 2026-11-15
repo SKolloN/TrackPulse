@@ -2,14 +2,15 @@
   "manifest_version": 3,
   "name": "TrackPulse — Now Playing for OBS",
   "short_name": "TrackPulse",
-  "version": "2.2.2",
+  "version": "2.3.0",
   "description": "Локально передаёт текущий трек из поддерживаемых музыкальных вкладок в OBS-оверлей. Данные не уходят в интернет.",
   "author": "SKolloN",
   "homepage_url": "https://github.com/SKolloN/TrackPulse",
   "minimum_chrome_version": "116",
   "offline_enabled": true,
   "permissions": [
-    "storage"
+    "storage",
+    "alarms"
   ],
   "host_permissions": [
     "https://music.yandex.ru/*",
@@ -17,6 +18,8 @@
     "https://vk.com/*",
     "https://m.vk.com/*",
     "https://vk.ru/*",
+    "https://open.spotify.com/*",
+    "https://music.youtube.com/*",
     "http://127.0.0.1:18181/*",
     "https://api.github.com/*",
     "https://github.com/*"
@@ -31,7 +34,9 @@
         "https://music.yandex.com/*",
         "https://vk.com/*",
         "https://m.vk.com/*",
-        "https://vk.ru/*"
+        "https://vk.ru/*",
+        "https://open.spotify.com/*",
+        "https://music.youtube.com/*"
       ],
       "js": [
         "page-reader.js"
@@ -45,7 +50,9 @@
         "https://music.yandex.com/*",
         "https://vk.com/*",
         "https://m.vk.com/*",
-        "https://vk.ru/*"
+        "https://vk.ru/*",
+        "https://open.spotify.com/*",
+        "https://music.youtube.com/*"
       ],
       "js": [
         "content-bridge.js"

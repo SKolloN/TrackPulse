@@ -2,7 +2,7 @@
 
 const SERVER_BASE = 'http://127.0.0.1:18181';
 const tabStates = new Map();
-const ALLOWED_PROVIDERS = new Set(['yandex', 'vk']);
+const ALLOWED_PROVIDERS = new Set(['yandex', 'vk', 'spotify', 'youtubemusic']);
 
 let lastPostedFingerprint = '';
 let lastPostAt = 0;
@@ -21,6 +21,8 @@ let settings = {
 function providerLabel(provider) {
   if (provider === 'vk') return 'VK';
   if (provider === 'yandex') return 'Яндекс Музыка';
+  if (provider === 'spotify') return 'Spotify';
+  if (provider === 'youtubemusic') return 'YouTube Music';
   return 'Неизвестно';
 }
 
@@ -306,6 +308,40 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
+async function checkExtensionReload() {
+  try {
+    const response = await fetch(`${SERVER_BASE}/api/reload-check?t=${Date.now()}`, { cache: 'no-store' });
+    if (!response.ok) return;
+    const data = await response.json();
+    if (!data?.reload) return;
+
+    try {
+      await ensureApiToken();
+      await fetch(`${SERVER_BASE}/api/reload-ack`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-TrackPulse-Token': apiToken
+        },
+        body: '{}'
+      });
+    } catch {
+      // reload anyway — flag may clear next boot
+    }
+
+    chrome.runtime.reload();
+  } catch {
+    // server offline
+  }
+}
+
 refreshSettings().catch(() => {});
 setInterval(() => refreshSettings().catch(() => {}), 10000);
 setInterval(() => postSourcesSnapshot().catch(() => {}), 4000);
+checkExtensionReload().catch(() => {});
+chrome.alarms.create('trackpulse-reload-check', { periodInMinutes: 0.5 });
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === 'trackpulse-reload-check') {
+    checkExtensionReload().catch(() => {});
+  }
+});

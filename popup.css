@@ -69,6 +69,8 @@ h1 { margin: 0; font-size: 17px; letter-spacing: -.01em; }
 .source-badge:hover { transform: translateY(-1px); }
 .source-badge.yandex { background: #3a3214; color: #f4d21f; }
 .source-badge.vk { background: #1c2f4a; color: #7eb6ff; }
+.source-badge.spotify { background: #143d28; color: #1ed760; }
+.source-badge.youtubemusic { background: #3a1717; color: #ff6b6b; }
 .track { margin-top: 10px; color: #d8d9dc; font-size: 13px; line-height: 1.4; }
 .error { margin-top: 8px; color: #ff8e9a; font-size: 11px; line-height: 1.35; }
 .update-banner {

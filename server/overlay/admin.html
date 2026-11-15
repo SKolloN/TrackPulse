@@ -44,6 +44,8 @@
           <select id="testProvider">
             <option value="yandex">Яндекс Музыка</option>
             <option value="vk">VK</option>
+            <option value="spotify">Spotify</option>
+            <option value="youtubemusic">YouTube Music</option>
           </select>
         </label>
         <label>Исполнитель<input id="testArtist" type="text" value="Admin Preview"></label>
@@ -72,13 +74,15 @@
 
       <article class="card">
         <h2>Источники вкладок</h2>
-        <p class="hint">Живой монитор VK / Яндекс без отключения вкладок.</p>
+        <p class="hint">Живой монитор вкладок: Яндекс, VK, Spotify, YouTube Music.</p>
         <div id="sourcesBox" class="sources-box">Нет данных от расширения</div>
         <label>Приоритет источника
           <select id="preferredProvider">
             <option value="auto">Авто (кто играет)</option>
             <option value="yandex">Предпочитать Яндекс</option>
             <option value="vk">Предпочитать VK</option>
+            <option value="spotify">Предпочитать Spotify</option>
+            <option value="youtubemusic">Предпочитать YouTube Music</option>
           </select>
         </label>
         <button id="saveSettings" class="primary" type="button">Сохранить приоритет</button>
@@ -111,7 +115,15 @@
         <label>Размер артиста<input id="var-artist-size" type="text"></label>
         <label>Показ карточки (мс)<input id="cfg-visibleDurationMs" type="number" min="1000" step="500"></label>
         <label>Скорость скролла<input id="cfg-scrollSpeedPxPerSecond" type="number" min="10" step="1"></label>
+        <label>Вид оверлея
+          <select id="cfg-layoutPreset">
+            <option value="classic">Классика</option>
+            <option value="compact">Компакт</option>
+            <option value="vinyl">Пластинка + обложка</option>
+          </select>
+        </label>
         <label class="check"><input id="cfg-showSourceLabel" type="checkbox"> Показывать источник</label>
+        <label class="check"><input id="cfg-showArtwork" type="checkbox"> Показывать обложку (vinyl)</label>
         <label class="check"><input id="cfg-hideWhenPaused" type="checkbox"> Скрывать на паузе</label>
       </div>
 

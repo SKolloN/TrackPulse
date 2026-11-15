@@ -27,11 +27,14 @@ function renderSource(state) {
 
   sourceBadge.hidden = false;
   sourceBadge.className = `source-badge ${state.provider}`;
-  sourceBadge.textContent = state.provider === 'vk'
-    ? 'Источник: VK'
-    : state.provider === 'yandex'
-      ? 'Источник: Яндекс Музыка'
-      : `Источник: ${state.providerLabel || state.provider}`;
+  const labels = {
+    vk: 'Источник: VK',
+    yandex: 'Источник: Яндекс Музыка',
+    spotify: 'Источник: Spotify',
+    youtubemusic: 'Источник: YouTube Music'
+  };
+  sourceBadge.textContent = labels[state.provider]
+    || `Источник: ${state.providerLabel || state.provider}`;
 }
 
 function parseVersion(tag) {
@@ -90,7 +93,7 @@ async function refresh() {
   renderSource(state);
   track.textContent = state?.hasTrack
     ? `${state.artist || 'Неизвестный исполнитель'} — ${state.title || 'Без названия'}${state.isPlaying ? '' : ' · пауза'}`
-    : 'Откройте Яндекс Музыку или VK и включите трек.';
+    : 'Откройте Яндекс / VK / Spotify / YouTube Music и включите трек.';
 
   const error = serverResponse?.ok ? '' : (stored.lastError || serverResponse?.error || 'Запустите INSTALL.bat или start-daemon.bat');
   errorBox.hidden = !error;

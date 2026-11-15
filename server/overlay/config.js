@@ -18,5 +18,8 @@ window.OVERLAY_CONFIG = {
   marqueeEndPauseSeconds: 1.0,
 
   unknownArtistText: 'TrackPulse',
-  showSourceLabel: true
+  showSourceLabel: true,
+  showArtwork: true,
+  // classic | compact | vinyl
+  layoutPreset: 'vinyl'
 };

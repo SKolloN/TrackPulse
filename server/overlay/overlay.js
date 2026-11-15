@@ -12,7 +12,9 @@ const config = Object.assign({
   marqueePauseSeconds: 1.1,
   marqueeEndPauseSeconds: 1.0,
   unknownArtistText: 'TrackPulse',
-  showSourceLabel: true
+  showSourceLabel: true,
+  showArtwork: true,
+  layoutPreset: 'vinyl'
 }, window.OVERLAY_CONFIG || {});
 
 function applyThemePayload(theme) {
@@ -25,6 +27,7 @@ function applyThemePayload(theme) {
   }
   if (theme.config && typeof theme.config === 'object') {
     Object.assign(config, theme.config);
+    applyLayout();
   }
 }
 
@@ -44,6 +47,8 @@ setInterval(() => loadTheme().catch(() => {}), 5000);
 
 const elements = {
   widget: document.querySelector('#widget'),
+  vinyl: document.querySelector('#vinyl'),
+  vinylArt: document.querySelector('#vinylArt'),
   title: document.querySelector('#title'),
   artist: document.querySelector('#artist'),
   titleMarquee: document.querySelector('#titleMarquee'),
@@ -52,7 +57,8 @@ const elements = {
   duration: document.querySelector('#duration'),
   progressBar: document.querySelector('#progressBar'),
   statusLabel: document.querySelector('#statusLabel'),
-  sourceLabel: document.querySelector('#sourceLabel')
+  sourceLabel: document.querySelector('#sourceLabel'),
+  playbackDot: document.querySelector('#playbackDot')
 };
 
 let state = null;
@@ -63,6 +69,25 @@ let polling = false;
 let cueSet = new Set();
 let switchingTimer = null;
 let currentCue = '';
+let lastArtwork = '';
+let eventSource = null;
+
+const PROVIDER_LABELS = {
+  yandex: 'Яндекс Музыка',
+  vk: 'VK',
+  spotify: 'Spotify',
+  youtubemusic: 'YouTube Music'
+};
+
+function applyLayout() {
+  const preset = String(config.layoutPreset || 'classic').toLowerCase();
+  const allowed = new Set(['classic', 'compact', 'vinyl']);
+  const layout = allowed.has(preset) ? preset : 'classic';
+  elements.widget.classList.remove('layout-classic', 'layout-compact', 'layout-vinyl');
+  elements.widget.classList.add(`layout-${layout}`);
+  const showVinyl = layout === 'vinyl' && config.showArtwork !== false;
+  if (elements.vinyl) elements.vinyl.hidden = !showVinyl;
+}
 
 function formatTime(seconds, unknown = '0:00') {
   const value = Number(seconds);
@@ -135,12 +160,27 @@ function scheduleAutoHide(marqueeDurationMs = 0, minimumVisibleMs = 0) {
   hideTimer = setTimeout(() => hideWidget(false), visibleFor);
 }
 
+function updateArtwork(nextState) {
+  if (!elements.vinylArt) return;
+  const url = String(nextState?.artwork || '');
+  if (url === lastArtwork) return;
+  lastArtwork = url;
+  if (/^https:\/\//i.test(url)) {
+    elements.vinylArt.style.backgroundImage = `url("${url.replace(/\\/g, '').replace(/"/g, '')}")`;
+    elements.vinylArt.classList.add('has-art');
+  } else {
+    elements.vinylArt.style.backgroundImage = '';
+    elements.vinylArt.classList.remove('has-art');
+  }
+}
+
 function updateText(nextState) {
   elements.title.textContent = nextState.title || 'Без названия';
   elements.artist.textContent = nextState.artist || config.unknownArtistText;
   elements.duration.textContent = Number(nextState.duration) > 0
     ? formatTime(nextState.duration)
     : '—:—';
+  updateArtwork(nextState);
   return updateMarquees();
 }
 
@@ -215,6 +255,8 @@ function applyState(nextState) {
   if (shouldHideForState) {
     if (config.hideWhenEmpty) hideWidget(true);
     state = nextState;
+    elements.widget.classList.remove('is-playing');
+    elements.widget.classList.add('is-paused');
     return;
   }
 
@@ -225,10 +267,13 @@ function applyState(nextState) {
   state = nextState;
   lastReceivedAtClient = performance.now();
   elements.widget.classList.toggle('is-paused', !nextState.isPlaying);
+  elements.widget.classList.toggle('is-playing', Boolean(nextState.isPlaying));
   elements.statusLabel.textContent = nextState.isPlaying ? 'СЕЙЧАС ИГРАЕТ' : 'НА ПАУЗЕ';
 
   if (elements.sourceLabel) {
-    const label = nextState.providerLabel || (nextState.provider === 'vk' ? 'VK' : nextState.provider === 'yandex' ? 'Яндекс Музыка' : '');
+    const label = nextState.providerLabel
+      || PROVIDER_LABELS[nextState.provider]
+      || '';
     const show = Boolean(config.showSourceLabel && label);
     elements.sourceLabel.hidden = !show;
     elements.sourceLabel.textContent = label;
@@ -238,6 +283,7 @@ function applyState(nextState) {
     elements.duration.textContent = Number(nextState.duration) > 0
       ? formatTime(nextState.duration)
       : '—:—';
+    updateArtwork(nextState);
     return;
   }
 
@@ -259,6 +305,39 @@ async function poll() {
   } finally {
     polling = false;
   }
+}
+
+function connectEvents() {
+  if (eventSource) {
+    try { eventSource.close(); } catch { /* ignore */ }
+    eventSource = null;
+  }
+  if (typeof EventSource === 'undefined') {
+    setInterval(poll, Math.max(80, config.pollIntervalMs));
+    poll();
+    return;
+  }
+
+  try {
+    eventSource = new EventSource('/api/events');
+    eventSource.onmessage = (event) => {
+      try {
+        applyState(JSON.parse(event.data));
+      } catch {
+        // ignore bad payload
+      }
+    };
+    eventSource.onerror = () => {
+      // EventSource retries via server `retry:` — fallback poll keeps UI alive.
+      poll().catch(() => {});
+    };
+  } catch {
+    setInterval(poll, Math.max(80, config.pollIntervalMs));
+    poll();
+  }
+
+  // Safety net if SSE stalls.
+  setInterval(() => poll().catch(() => {}), Math.max(1200, Number(config.pollIntervalMs) * 10));
 }
 
 function animate() {
@@ -288,6 +367,6 @@ window.addEventListener('resize', () => {
   }
 });
 
-setInterval(poll, Math.max(80, config.pollIntervalMs));
-poll();
+applyLayout();
+connectEvents();
 animate();

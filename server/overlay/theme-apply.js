@@ -48,6 +48,7 @@
     root.style.setProperty('--accent-ring', hexToRgba(accent, 0.45));
     if (font) root.style.setProperty('--font', font);
 
+    document.body.style.transition = 'background 420ms ease, color 420ms ease';
     document.body.style.background = `radial-gradient(circle at 12% 0%, ${hexToRgba(accent, 0.1)}, transparent 28%), #0b0c0e`;
   }
 

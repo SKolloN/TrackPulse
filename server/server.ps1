@@ -21,7 +21,9 @@ $Listener = $null
 $CurrentHistoryTrackKey = ''
 $CurrentJournalTrackKey = ''
 $AppName = 'trackpulse-obs'
-$AppVersion = '2.2.2'
+$AppVersion = '2.3.0'
+$AllowedProviders = @('yandex', 'vk', 'spotify', 'youtubemusic')
+$ReloadFlagFile = Join-Path $DataRoot 'extension-reload.json'
 $JournalLimit = 5000
 $DaemonMode = [bool]$Daemon
 $Theme = $null
@@ -222,8 +224,36 @@ function Get-ProviderLabel([string]$Provider) {
     switch ($Provider) {
         'vk' { return 'VK' }
         'yandex' { return 'Яндекс Музыка' }
+        'spotify' { return 'Spotify' }
+        'youtubemusic' { return 'YouTube Music' }
         default { return '' }
     }
+}
+
+function Test-AllowedProvider([string]$Provider) {
+    return $AllowedProviders -contains $Provider
+}
+
+function Get-ReloadFlag {
+    if (-not (Test-Path -LiteralPath $ReloadFlagFile -PathType Leaf)) {
+        return @{ reload = $false; version = $AppVersion; requestedAt = 0 }
+    }
+    try {
+        $Raw = Get-Content -LiteralPath $ReloadFlagFile -Raw -Encoding UTF8
+        $Data = $Raw | ConvertFrom-Json
+        return @{
+            reload = $true
+            version = if ($Data.version) { [string]$Data.version } else { $AppVersion }
+            requestedAt = if ($Data.requestedAt) { [long]$Data.requestedAt } else { 0 }
+        }
+    }
+    catch {
+        return @{ reload = $false; version = $AppVersion; requestedAt = 0 }
+    }
+}
+
+function Clear-ReloadFlag {
+    Remove-Item -LiteralPath $ReloadFlagFile -Force -ErrorAction SilentlyContinue
 }
 
 function Finalize-CurrentHistoryTrack {
@@ -725,6 +755,58 @@ try {
                 continue
             }
 
+            if ($Path -eq '/api/events' -and $Method -eq 'GET') {
+                $Revision = [int]$State['revision']
+                $Payload = Convert-StateToJson
+                $BodyText = "retry: 250`r`nid: $Revision`r`ndata: $Payload`r`n`r`n"
+                $Bytes = [System.Text.Encoding]::UTF8.GetBytes($BodyText)
+                $AllowOrigin = if (Test-AllowedOrigin $Origin) {
+                    if ([string]::IsNullOrWhiteSpace($Origin) -or $Origin -eq 'null') { '*' } else { $Origin }
+                } else {
+                    "http://127.0.0.1:$Port"
+                }
+                $Header = @(
+                    'HTTP/1.1 200 OK'
+                    'Content-Type: text/event-stream; charset=utf-8'
+                    "Content-Length: $($Bytes.Length)"
+                    "Access-Control-Allow-Origin: $AllowOrigin"
+                    'Cache-Control: no-cache'
+                    'Connection: close'
+                    'X-Accel-Buffering: no'
+                    ''
+                    ''
+                ) -join "`r`n"
+                $Stream = $Client.GetStream()
+                $HeaderBytes = [System.Text.Encoding]::ASCII.GetBytes($Header)
+                $Stream.Write($HeaderBytes, 0, $HeaderBytes.Length)
+                $Stream.Write($Bytes, 0, $Bytes.Length)
+                $Stream.Flush()
+                continue
+            }
+
+            if ($Path -eq '/api/reload-check' -and $Method -eq 'GET') {
+                $Flag = Get-ReloadFlag
+                $Payload = @{
+                    ok = $true
+                    reload = [bool]$Flag.reload
+                    version = [string]$Flag.version
+                    serverVersion = $AppVersion
+                    requestedAt = [long]$Flag.requestedAt
+                } | ConvertTo-Json -Compress
+                Send-Text $Client 200 $Payload 'application/json; charset=utf-8' $Origin
+                continue
+            }
+
+            if ($Path -eq '/api/reload-ack' -and $Method -eq 'POST') {
+                if (-not (Test-ApiToken $Request.Token)) {
+                    Send-Text $Client 401 '{"ok":false,"error":"Unauthorized"}' 'application/json; charset=utf-8' $Origin
+                    continue
+                }
+                Clear-ReloadFlag
+                Send-Text $Client 200 '{"ok":true}' 'application/json; charset=utf-8' $Origin
+                continue
+            }
+
             if ($Path -eq '/api/history' -and $Method -eq 'GET') {
                 Send-Text $Client 200 (Convert-HistoryToJson) 'application/json; charset=utf-8' $Origin
                 continue
@@ -746,7 +828,7 @@ try {
                 if ($Incoming.PSObject.Properties.Name -contains 'provider') {
                     $Provider = [string]$Incoming.provider
                 }
-                if ($Provider -ne 'yandex' -and $Provider -ne 'vk' -and $Provider -ne '') {
+                if ($Provider -and -not (Test-AllowedProvider $Provider)) {
                     $Provider = ''
                 }
 

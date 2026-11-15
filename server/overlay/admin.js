@@ -64,7 +64,9 @@ function fillThemeForm(theme) {
   document.querySelector('#var-artist-size').value = vars['artist-size'] || '15px';
   document.querySelector('#cfg-visibleDurationMs').value = cfg.visibleDurationMs ?? 7000;
   document.querySelector('#cfg-scrollSpeedPxPerSecond').value = cfg.scrollSpeedPxPerSecond ?? 42;
+  document.querySelector('#cfg-layoutPreset').value = cfg.layoutPreset || 'vinyl';
   document.querySelector('#cfg-showSourceLabel').checked = cfg.showSourceLabel !== false;
+  document.querySelector('#cfg-showArtwork').checked = cfg.showArtwork !== false;
   document.querySelector('#cfg-hideWhenPaused').checked = Boolean(cfg.hideWhenPaused);
 }
 
@@ -89,7 +91,9 @@ function readThemeForm() {
       ...(prev.config || {}),
       visibleDurationMs: Number(document.querySelector('#cfg-visibleDurationMs').value) || 7000,
       scrollSpeedPxPerSecond: Number(document.querySelector('#cfg-scrollSpeedPxPerSecond').value) || 42,
+      layoutPreset: document.querySelector('#cfg-layoutPreset').value || 'vinyl',
       showSourceLabel: document.querySelector('#cfg-showSourceLabel').checked,
+      showArtwork: document.querySelector('#cfg-showArtwork').checked,
       hideWhenPaused: document.querySelector('#cfg-hideWhenPaused').checked
     }
   };
